@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 
 const STATUSES = ["Saved", "Applied", "Phone Screen", "Interview", "Offer", "Rejected", "Withdrawn"];
@@ -122,7 +123,6 @@ export default function JobTracker() {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {["All", ...STATUSES].map(s => {
               const active = filterStatus === s;
-              // enlist-disable-next-line no-unused-vars
               const c = STATUS_COLORS[s];
               return (
                 <button key={s} onClick={() => setFilterStatus(s)} style={{ padding: "6px 12px", borderRadius: 20, border: "1px solid", borderColor: active ? "#6366f1" : "#e5e7eb", background: active ? "#eef2ff" : "#fff", color: active ? "#6366f1" : "#6b7280", fontWeight: active ? 600 : 400, cursor: "pointer", fontSize: 12 }}>
