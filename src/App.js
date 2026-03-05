@@ -123,7 +123,6 @@ export default function JobTracker() {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {["All", ...STATUSES].map(s => {
               const active = filterStatus === s;
-              const c = STATUS_COLORS[s];
               return (
                 <button key={s} onClick={() => setFilterStatus(s)} style={{ padding: "6px 12px", borderRadius: 20, border: "1px solid", borderColor: active ? "#6366f1" : "#e5e7eb", background: active ? "#eef2ff" : "#fff", color: active ? "#6366f1" : "#6b7280", fontWeight: active ? 600 : 400, cursor: "pointer", fontSize: 12 }}>
                   {s} {s !== "All" && <span style={{ color: "#9ca3af" }}>({stats[s] || 0})</span>}
