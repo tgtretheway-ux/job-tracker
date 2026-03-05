@@ -1,49 +1,105 @@
 /* eslint-disable */
 import { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
 
-const STATUSES = ["Saved", "Applied", "Phone Screen", "Interview", "Offer", "Rejected", "Withdrawn"];
+const STATUSES = ["Saved", "Applied", "Phone Screen", "Interview", "Aptitude Test Scheduled", "Offer", "Rejected", "Withdrawn", "Position Closed", "Pending", "Received", "Submitted"];
 
 const STATUS_COLORS = {
   "Saved": { bg: "bg-gray-100", text: "text-gray-700", dot: "bg-gray-400" },
   "Applied": { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
   "Phone Screen": { bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-500" },
   "Interview": { bg: "bg-purple-100", text: "text-purple-700", dot: "bg-purple-500" },
+  "Aptitude Test Scheduled": { bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-400" },
   "Offer": { bg: "bg-green-100", text: "text-green-700", dot: "bg-green-500" },
   "Rejected": { bg: "bg-red-100", text: "text-red-600", dot: "bg-red-400" },
   "Withdrawn": { bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-400" },
+  "Position Closed": { bg: "bg-red-100", text: "text-red-600", dot: "bg-red-400" },
+  "Pending": { bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-500" },
+  "Received": { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
+  "Submitted": { bg: "bg-indigo-100", text: "text-indigo-700", dot: "bg-indigo-500" },
 };
+
+const DEFAULT_COLOR = { bg: "bg-gray-100", text: "text-gray-700", dot: "bg-gray-400" };
 
 const EMPTY_FORM = {
   company: "", role: "", location: "", salary: "", url: "",
   status: "Saved", appliedDate: "", notes: "", contact: "",
 };
 
-const sampleData = [
-  { id: 1, company: "Stripe", role: "Software Engineer", location: "Remote", salary: "$160k–$200k", url: "", status: "Interview", appliedDate: "2026-02-10", notes: "3rd round scheduled", contact: "sarah@stripe.com" },
-  { id: 2, company: "Notion", role: "Product Designer", location: "San Francisco, CA", salary: "$130k–$160k", url: "", status: "Applied", appliedDate: "2026-02-20", notes: "Applied via LinkedIn", contact: "" },
-  { id: 3, company: "Linear", role: "Frontend Engineer", location: "Remote", salary: "$140k–$180k", url: "", status: "Phone Screen", appliedDate: "2026-02-15", notes: "Call with recruiter on March 6", contact: "jobs@linear.app" },
-  { id: 4, company: "JATC", role: "Electrical Apprenticeship", location: "Charlotte, NC", salary: "N/A", url: "", status: "Applied", appliedDate: "2026-02-18", notes: "Test on April 14", contact: "" },
+const myJobs = [
+  { id: 1, company: "IBEW / JTAC", role: "Electrician Apprenticeship Program", location: "", salary: "", url: "", status: "Aptitude Test Scheduled", appliedDate: "Feb. 18th, 2026", notes: "Aptitude test scheduled for April 14th, 2026 at 8:30 AM", contact: "" },
+  { id: 2, company: "Adams Electric Company", role: "Mission Critical - Electrical Helper", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 18th, 2026", notes: "Application received, pending processing", contact: "" },
+  { id: 3, company: "Roby Services", role: "Commercial Electrical Apprentice", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 18th, 2026", notes: "Application received, pending processing", contact: "" },
+  { id: 4, company: "Wayne J. Griffin Electric", role: "Apprenticeship Program", location: "", salary: "", url: "", status: "Saved", appliedDate: "Feb. 18th, 2026", notes: "Apprenticeship program runs from September to April - not taking applicants", contact: "" },
+  { id: 5, company: "IEC", role: "Electrical Apprentice Program", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 18th, 2026", notes: "", contact: "" },
+  { id: 6, company: "Lux Lighting Solutions", role: "Electrician", location: "", salary: "", url: "", status: "Pending", appliedDate: "Feb. 15th, 2026", notes: "", contact: "" },
+  { id: 7, company: "Miner LTD.", role: "Commercial Dock & Door Service Technician", location: "", salary: "", url: "", status: "Pending", appliedDate: "Feb. 15th, 2026", notes: "", contact: "" },
+  { id: 8, company: "Full Spectrum Plumbing LLC.", role: "Entry Level Plumber Apprentice", location: "", salary: "", url: "", status: "Pending", appliedDate: "Feb. 15th, 2026", notes: "", contact: "" },
+  { id: 9, company: "Talent Corps.", role: "Sheetmetal Mechanic & Helper", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 17th, 2026", notes: "", contact: "" },
+  { id: 10, company: "Surface Experts", role: "Apprentice Creative Repair Specialist", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 15th, 2026", notes: "", contact: "" },
+  { id: 11, company: "Fountain Electric & Services", role: "Electrical Helper", location: "", salary: "", url: "", status: "Position Closed", appliedDate: "Feb. 03, 2026", notes: "", contact: "" },
+  { id: 12, company: "Outsource", role: "Electrician Apprentice", location: "", salary: "", url: "", status: "Position Closed", appliedDate: "Feb. 06, 2026", notes: "", contact: "" },
+  { id: 13, company: "Emcor", role: "Entry Level Electrical Construction Helper", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 20th, 2026", notes: "", contact: "" },
+  { id: 14, company: "Titan Electric", role: "Apprentice Electrician, Commercial", location: "", salary: "", url: "", status: "Submitted", appliedDate: "Mar. 2nd, 2026", notes: "", contact: "" },
+  { id: 15, company: "Grant Construction", role: "Roof Inspector - Entry Level", location: "", salary: "", url: "", status: "Submitted", appliedDate: "Mar. 2nd, 2026", notes: "", contact: "" },
 ];
 
 export default function JobTracker() {
   const [jobs, setJobs] = useState(() => {
     try {
       const stored = localStorage.getItem("job_tracker_v1");
-      return stored ? JSON.parse(stored) : sampleData;
-    } catch { return sampleData; }
+      return stored ? JSON.parse(stored) : myJobs;
+    } catch { return myJobs; }
   });
 
-  const [view, setView] = useState("board"); // board | table
+  const [view, setView] = useState("board");
   const [showModal, setShowModal] = useState(false);
   const [editJob, setEditJob] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [filterStatus, setFilterStatus] = useState("All");
   const [search, setSearch] = useState("");
   const [detailJob, setDetailJob] = useState(null);
+  const [importMsg, setImportMsg] = useState("");
 
   useEffect(() => {
     try { localStorage.setItem("job_tracker_v1", JSON.stringify(jobs)); } catch {}
   }, [jobs]);
+
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const wb = XLSX.read(evt.target.result, { type: "binary" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+        const imported = rows
+          .filter(r => r["Company"] || r["Position"])
+          .map((r, i) => ({
+            id: Date.now() + i,
+            company: r["Company"] || "",
+            role: r["Position"] || "",
+            appliedDate: r["Date Applied"] || "",
+            status: STATUSES.includes(r["Status"]) ? r["Status"] : "Applied",
+            notes: STATUSES.includes(r["Status"]) ? "" : (r["Status"] || ""),
+            location: "", salary: "", url: "", contact: "",
+          }));
+        setJobs(prev => {
+          const existingCompanies = new Set(prev.map(j => j.company + j.role));
+          const newJobs = imported.filter(j => !existingCompanies.has(j.company + j.role));
+          setImportMsg(`✅ Imported ${newJobs.length} new job(s)!`);
+          setTimeout(() => setImportMsg(""), 3000);
+          return [...prev, ...newJobs];
+        });
+      } catch {
+        setImportMsg("❌ Error reading file. Make sure it's an .xlsx file.");
+        setTimeout(() => setImportMsg(""), 3000);
+      }
+    };
+    reader.readAsBinaryString(file);
+    e.target.value = "";
+  };
 
   const filtered = jobs.filter(j => {
     const matchStatus = filterStatus === "All" || j.status === filterStatus;
@@ -74,8 +130,10 @@ export default function JobTracker() {
     setJobs(prev => prev.map(j => j.id === id ? { ...j, status } : j));
   };
 
+  const getColor = (status) => STATUS_COLORS[status] || DEFAULT_COLOR;
+
   const stats = STATUSES.reduce((acc, s) => { acc[s] = jobs.filter(j => j.status === s).length; return acc; }, {});
-  const activeCount = jobs.filter(j => !["Rejected", "Withdrawn"].includes(j.status)).length;
+  const activeCount = jobs.filter(j => !["Rejected", "Withdrawn", "Position Closed"].includes(j.status)).length;
 
   return (
     <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: "100vh", background: "#f8f9fc" }}>
@@ -88,7 +146,12 @@ export default function JobTracker() {
             </div>
             <span style={{ fontWeight: 700, fontSize: 18, color: "#111" }}>JobTrack</span>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {importMsg && <span style={{ fontSize: 13, color: importMsg.startsWith("✅") ? "#10b981" : "#ef4444" }}>{importMsg}</span>}
+            <label style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>
+              📂 Import Excel
+              <input type="file" accept=".xlsx,.xls" onChange={handleImport} style={{ display: "none" }} />
+            </label>
             <button onClick={() => setView("board")} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid", borderColor: view === "board" ? "#6366f1" : "#e5e7eb", background: view === "board" ? "#eef2ff" : "#fff", color: view === "board" ? "#6366f1" : "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Board</button>
             <button onClick={() => setView("table")} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid", borderColor: view === "table" ? "#6366f1" : "#e5e7eb", background: view === "table" ? "#eef2ff" : "#fff", color: view === "table" ? "#6366f1" : "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Table</button>
             <button onClick={openAdd} style={{ padding: "6px 16px", borderRadius: 6, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff", border: "none", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>+ Add Job</button>
@@ -114,30 +177,23 @@ export default function JobTracker() {
 
         {/* Filters */}
         <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search company or role…"
-            style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13, outline: "none", width: 220, background: "#fff" }}
-          />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search company or role…"
+            style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13, outline: "none", width: 220, background: "#fff" }} />
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {["All", ...STATUSES].map(s => {
-              const active = filterStatus === s;
-              return (
-                <button key={s} onClick={() => setFilterStatus(s)} style={{ padding: "6px 12px", borderRadius: 20, border: "1px solid", borderColor: active ? "#6366f1" : "#e5e7eb", background: active ? "#eef2ff" : "#fff", color: active ? "#6366f1" : "#6b7280", fontWeight: active ? 600 : 400, cursor: "pointer", fontSize: 12 }}>
-                  {s} {s !== "All" && <span style={{ color: "#9ca3af" }}>({stats[s] || 0})</span>}
-                </button>
-              );
-            })}
+            {["All", ...STATUSES].map(s => (
+              <button key={s} onClick={() => setFilterStatus(s)} style={{ padding: "6px 12px", borderRadius: 20, border: "1px solid", borderColor: filterStatus === s ? "#6366f1" : "#e5e7eb", background: filterStatus === s ? "#eef2ff" : "#fff", color: filterStatus === s ? "#6366f1" : "#6b7280", fontWeight: filterStatus === s ? 600 : 400, cursor: "pointer", fontSize: 12 }}>
+                {s} {s !== "All" && <span style={{ color: "#9ca3af" }}>({stats[s] || 0})</span>}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Board View */}
         {view === "board" && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
             {STATUSES.map(status => {
               const cols = filtered.filter(j => j.status === status);
-              const c = STATUS_COLORS[status];
+              const c = getColor(status);
               return (
                 <div key={status} style={{ background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb", overflow: "hidden" }}>
                   <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", display: "flex", alignItems: "center", gap: 8 }}>
@@ -148,14 +204,14 @@ export default function JobTracker() {
                   <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, minHeight: 60 }}>
                     {cols.length === 0 && <div style={{ color: "#d1d5db", fontSize: 12, textAlign: "center", padding: "12px 0" }}>No applications</div>}
                     {cols.map(job => (
-                      <div key={job.id} onClick={() => setDetailJob(job)} style={{ background: "#fafafa", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 12px", cursor: "pointer", transition: "box-shadow 0.15s" }}
+                      <div key={job.id} onClick={() => setDetailJob(job)} style={{ background: "#fafafa", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 12px", cursor: "pointer" }}
                         onMouseEnter={e => e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)"}
                         onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
                         <div style={{ fontWeight: 600, fontSize: 13, color: "#111" }}>{job.company}</div>
                         <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{job.role}</div>
                         {job.location && <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>📍 {job.location}</div>}
                         {job.appliedDate && <div style={{ fontSize: 11, color: "#9ca3af" }}>📅 {job.appliedDate}</div>}
-                        {job.salary && <div style={{ fontSize: 11, color: "#10b981", marginTop: 2, fontWeight: 500 }}>{job.salary}</div>}
+                        {job.notes && <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4, fontStyle: "italic" }}>{job.notes.substring(0, 60)}{job.notes.length > 60 ? "…" : ""}</div>}
                       </div>
                     ))}
                   </div>
@@ -181,7 +237,7 @@ export default function JobTracker() {
                   <tr><td colSpan={7} style={{ padding: 32, textAlign: "center", color: "#9ca3af", fontSize: 14 }}>No applications found.</td></tr>
                 )}
                 {filtered.map((job, i) => {
-                  const c = STATUS_COLORS[job.status];
+                  const c = getColor(job.status);
                   return (
                     <tr key={job.id} style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
                       <td style={{ padding: "12px 16px", fontWeight: 600, fontSize: 13, color: "#111", cursor: "pointer" }} onClick={() => setDetailJob(job)}>{job.company}</td>
@@ -190,7 +246,7 @@ export default function JobTracker() {
                       <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 500 }}>{job.salary || "—"}</td>
                       <td style={{ padding: "12px 16px" }}>
                         <select value={job.status} onChange={e => updateStatus(job.id, e.target.value)}
-                          style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: c.bg, color: c.text.replace("text-", ""), fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}>
+                          style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: c.bg, fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}>
                           {STATUSES.map(s => <option key={s}>{s}</option>)}
                         </select>
                       </td>
@@ -218,11 +274,11 @@ export default function JobTracker() {
               <div style={{ fontWeight: 700, fontSize: 18, color: "#111" }}>{detailJob.company}</div>
               <div style={{ color: "#6b7280", fontSize: 14, marginTop: 2 }}>{detailJob.role}</div>
             </div>
-            <button onClick={() => setDetailJob(null)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#9ca3af", lineHeight: 1 }}>×</button>
+            <button onClick={() => setDetailJob(null)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#9ca3af" }}>×</button>
           </div>
           <div style={{ padding: "20px 24px", flex: 1 }}>
             {[
-              { label: "Status", value: <span style={{ padding: "3px 10px", borderRadius: 12, fontSize: 12, fontWeight: 600, background: STATUS_COLORS[detailJob.status].bg, color: STATUS_COLORS[detailJob.status].text.replace("text-", "") }}>{detailJob.status}</span> },
+              { label: "Status", value: <span style={{ padding: "3px 10px", borderRadius: 12, fontSize: 12, fontWeight: 600, background: getColor(detailJob.status).bg }}>{detailJob.status}</span> },
               { label: "Location", value: detailJob.location },
               { label: "Salary", value: detailJob.salary },
               { label: "Applied", value: detailJob.appliedDate },
@@ -257,7 +313,7 @@ export default function JobTracker() {
                 { key: "role", label: "Role *", full: false },
                 { key: "location", label: "Location", full: false },
                 { key: "salary", label: "Salary Range", full: false },
-                { key: "appliedDate", label: "Applied Date", type: "date", full: false },
+                { key: "appliedDate", label: "Applied Date", full: false },
                 { key: "contact", label: "Contact Email", full: false },
                 { key: "url", label: "Job URL", full: true },
                 { key: "notes", label: "Notes", full: true, multiline: true },
@@ -268,7 +324,7 @@ export default function JobTracker() {
                     <textarea value={form[field.key]} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
                       rows={3} style={{ width: "100%", padding: "8px 10px", borderRadius: 7, border: "1px solid #e5e7eb", fontSize: 13, outline: "none", resize: "vertical", boxSizing: "border-box" }} />
                   ) : (
-                    <input type={field.type || "text"} value={form[field.key]} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
+                    <input type="text" value={form[field.key]} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
                       style={{ width: "100%", padding: "8px 10px", borderRadius: 7, border: "1px solid #e5e7eb", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
                   )}
                 </div>
