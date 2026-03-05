@@ -1,6 +1,12 @@
 /* eslint-disable */
 import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.REACT_APP_SUPABASE_URL,
+  process.env.REACT_APP_SUPABASE_KEY
+);
 
 const STATUSES = ["Saved", "Applied", "Phone Screen", "Interview", "Aptitude Test Scheduled", "Offer", "Rejected", "Withdrawn", "Position Closed", "Pending", "Received", "Submitted"];
 
@@ -23,35 +29,12 @@ const DEFAULT_COLOR = { bg: "bg-gray-100", text: "text-gray-700", dot: "bg-gray-
 
 const EMPTY_FORM = {
   company: "", role: "", location: "", salary: "", url: "",
-  status: "Saved", appliedDate: "", notes: "", contact: "",
+  status: "Saved", applied_date: "", notes: "", contact: "",
 };
 
-const myJobs = [
-  { id: 1, company: "IBEW / JTAC", role: "Electrician Apprenticeship Program", location: "", salary: "", url: "", status: "Aptitude Test Scheduled", appliedDate: "Feb. 18th, 2026", notes: "Aptitude test scheduled for April 14th, 2026 at 8:30 AM", contact: "" },
-  { id: 2, company: "Adams Electric Company", role: "Mission Critical - Electrical Helper", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 18th, 2026", notes: "Application received, pending processing", contact: "" },
-  { id: 3, company: "Roby Services", role: "Commercial Electrical Apprentice", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 18th, 2026", notes: "Application received, pending processing", contact: "" },
-  { id: 4, company: "Wayne J. Griffin Electric", role: "Apprenticeship Program", location: "", salary: "", url: "", status: "Saved", appliedDate: "Feb. 18th, 2026", notes: "Apprenticeship program runs from September to April - not taking applicants", contact: "" },
-  { id: 5, company: "IEC", role: "Electrical Apprentice Program", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 18th, 2026", notes: "", contact: "" },
-  { id: 6, company: "Lux Lighting Solutions", role: "Electrician", location: "", salary: "", url: "", status: "Pending", appliedDate: "Feb. 15th, 2026", notes: "", contact: "" },
-  { id: 7, company: "Miner LTD.", role: "Commercial Dock & Door Service Technician", location: "", salary: "", url: "", status: "Pending", appliedDate: "Feb. 15th, 2026", notes: "", contact: "" },
-  { id: 8, company: "Full Spectrum Plumbing LLC.", role: "Entry Level Plumber Apprentice", location: "", salary: "", url: "", status: "Pending", appliedDate: "Feb. 15th, 2026", notes: "", contact: "" },
-  { id: 9, company: "Talent Corps.", role: "Sheetmetal Mechanic & Helper", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 17th, 2026", notes: "", contact: "" },
-  { id: 10, company: "Surface Experts", role: "Apprentice Creative Repair Specialist", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 15th, 2026", notes: "", contact: "" },
-  { id: 11, company: "Fountain Electric & Services", role: "Electrical Helper", location: "", salary: "", url: "", status: "Position Closed", appliedDate: "Feb. 03, 2026", notes: "", contact: "" },
-  { id: 12, company: "Outsource", role: "Electrician Apprentice", location: "", salary: "", url: "", status: "Position Closed", appliedDate: "Feb. 06, 2026", notes: "", contact: "" },
-  { id: 13, company: "Emcor", role: "Entry Level Electrical Construction Helper", location: "", salary: "", url: "", status: "Received", appliedDate: "Feb. 20th, 2026", notes: "", contact: "" },
-  { id: 14, company: "Titan Electric", role: "Apprentice Electrician, Commercial", location: "", salary: "", url: "", status: "Submitted", appliedDate: "Mar. 2nd, 2026", notes: "", contact: "" },
-  { id: 15, company: "Grant Construction", role: "Roof Inspector - Entry Level", location: "", salary: "", url: "", status: "Submitted", appliedDate: "Mar. 2nd, 2026", notes: "", contact: "" },
-];
-
 export default function JobTracker() {
-  const [jobs, setJobs] = useState(() => {
-    try {
-      const stored = localStorage.getItem("job_tracker_v1");
-      return stored ? JSON.parse(stored) : myJobs;
-    } catch { return myJobs; }
-  });
-
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState("board");
   const [showModal, setShowModal] = useState(false);
   const [editJob, setEditJob] = useState(null);
@@ -61,41 +44,40 @@ export default function JobTracker() {
   const [detailJob, setDetailJob] = useState(null);
   const [importMsg, setImportMsg] = useState("");
 
-  useEffect(() => {
-    try { localStorage.setItem("job_tracker_v1", JSON.stringify(jobs)); } catch {}
-  }, [jobs]);
+  useEffect(() => { fetchJobs(); }, []);
+
+  const fetchJobs = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from("jobs").select("*").order("created_at", { ascending: false });
+    if (error) console.error(error);
+    else setJobs(data || []);
+    setLoading(false);
+  };
 
   const handleImport = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
         const wb = XLSX.read(evt.target.result, { type: "binary" });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
         const imported = rows
           .filter(r => r["Company"] || r["Position"])
-          .map((r, i) => ({
-            id: Date.now() + i,
+          .map(r => ({
             company: r["Company"] || "",
             role: r["Position"] || "",
-            appliedDate: r["Date Applied"] || "",
+            applied_date: r["Date Applied"] || "",
             status: STATUSES.includes(r["Status"]) ? r["Status"] : "Applied",
             notes: STATUSES.includes(r["Status"]) ? "" : (r["Status"] || ""),
             location: "", salary: "", url: "", contact: "",
           }));
-        setJobs(prev => {
-          const existingCompanies = new Set(prev.map(j => j.company + j.role));
-          const newJobs = imported.filter(j => !existingCompanies.has(j.company + j.role));
-          setImportMsg(`✅ Imported ${newJobs.length} new job(s)!`);
-          setTimeout(() => setImportMsg(""), 3000);
-          return [...prev, ...newJobs];
-        });
-      } catch {
-        setImportMsg("❌ Error reading file. Make sure it's an .xlsx file.");
+        const { error } = await supabase.from("jobs").insert(imported);
+        if (error) { setImportMsg("❌ Import failed: " + error.message); }
+        else { setImportMsg(`✅ Imported ${imported.length} job(s)!`); fetchJobs(); }
         setTimeout(() => setImportMsg(""), 3000);
-      }
+      } catch { setImportMsg("❌ Error reading file."); setTimeout(() => setImportMsg(""), 3000); }
     };
     reader.readAsBinaryString(file);
     e.target.value = "";
@@ -111,22 +93,27 @@ export default function JobTracker() {
   const openEdit = (job) => { setForm({ ...job }); setEditJob(job.id); setShowModal(true); };
   const closeModal = () => { setShowModal(false); setEditJob(null); };
 
-  const saveJob = () => {
+  const saveJob = async () => {
     if (!form.company || !form.role) return;
     if (editJob) {
-      setJobs(prev => prev.map(j => j.id === editJob ? { ...form, id: editJob } : j));
+      const { error } = await supabase.from("jobs").update({ ...form }).eq("id", editJob);
+      if (error) console.error(error);
     } else {
-      setJobs(prev => [...prev, { ...form, id: Date.now() }]);
+      const { error } = await supabase.from("jobs").insert([{ ...form }]);
+      if (error) console.error(error);
     }
+    fetchJobs();
     closeModal();
   };
 
-  const deleteJob = (id) => {
+  const deleteJob = async (id) => {
+    await supabase.from("jobs").delete().eq("id", id);
     setJobs(prev => prev.filter(j => j.id !== id));
     if (detailJob?.id === id) setDetailJob(null);
   };
 
-  const updateStatus = (id, status) => {
+  const updateStatus = async (id, status) => {
+    await supabase.from("jobs").update({ status }).eq("id", id);
     setJobs(prev => prev.map(j => j.id === id ? { ...j, status } : j));
   };
 
@@ -137,7 +124,6 @@ export default function JobTracker() {
 
   return (
     <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: "100vh", background: "#f8f9fc" }}>
-      {/* Header */}
       <div style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "0 24px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -160,7 +146,6 @@ export default function JobTracker() {
       </div>
 
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 24px" }}>
-        {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
           {[
             { label: "Total Applications", value: jobs.length, color: "#6366f1" },
@@ -175,7 +160,6 @@ export default function JobTracker() {
           ))}
         </div>
 
-        {/* Filters */}
         <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search company or role…"
             style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13, outline: "none", width: 220, background: "#fff" }} />
@@ -188,8 +172,9 @@ export default function JobTracker() {
           </div>
         </div>
 
-        {/* Board View */}
-        {view === "board" && (
+        {loading && <div style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>Loading jobs...</div>}
+
+        {!loading && view === "board" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
             {STATUSES.map(status => {
               const cols = filtered.filter(j => j.status === status);
@@ -210,7 +195,7 @@ export default function JobTracker() {
                         <div style={{ fontWeight: 600, fontSize: 13, color: "#111" }}>{job.company}</div>
                         <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{job.role}</div>
                         {job.location && <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>📍 {job.location}</div>}
-                        {job.appliedDate && <div style={{ fontSize: 11, color: "#9ca3af" }}>📅 {job.appliedDate}</div>}
+                        {job.applied_date && <div style={{ fontSize: 11, color: "#9ca3af" }}>📅 {job.applied_date}</div>}
                         {job.notes && <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4, fontStyle: "italic" }}>{job.notes.substring(0, 60)}{job.notes.length > 60 ? "…" : ""}</div>}
                       </div>
                     ))}
@@ -221,8 +206,7 @@ export default function JobTracker() {
           </div>
         )}
 
-        {/* Table View */}
-        {view === "table" && (
+        {!loading && view === "table" && (
           <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb", overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
@@ -250,7 +234,7 @@ export default function JobTracker() {
                           {STATUSES.map(s => <option key={s}>{s}</option>)}
                         </select>
                       </td>
-                      <td style={{ padding: "12px 16px", fontSize: 13, color: "#9ca3af" }}>{job.appliedDate || "—"}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 13, color: "#9ca3af" }}>{job.applied_date || "—"}</td>
                       <td style={{ padding: "12px 16px" }}>
                         <div style={{ display: "flex", gap: 6 }}>
                           <button onClick={() => openEdit(job)} style={{ padding: "4px 10px", borderRadius: 5, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontSize: 12, cursor: "pointer" }}>Edit</button>
@@ -266,7 +250,6 @@ export default function JobTracker() {
         )}
       </div>
 
-      {/* Detail Drawer */}
       {detailJob && (
         <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 360, background: "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", zIndex: 50, overflowY: "auto", display: "flex", flexDirection: "column" }}>
           <div style={{ padding: "20px 24px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -281,7 +264,7 @@ export default function JobTracker() {
               { label: "Status", value: <span style={{ padding: "3px 10px", borderRadius: 12, fontSize: 12, fontWeight: 600, background: getColor(detailJob.status).bg }}>{detailJob.status}</span> },
               { label: "Location", value: detailJob.location },
               { label: "Salary", value: detailJob.salary },
-              { label: "Applied", value: detailJob.appliedDate },
+              { label: "Applied", value: detailJob.applied_date },
               { label: "Contact", value: detailJob.contact },
               { label: "URL", value: detailJob.url ? <a href={detailJob.url} target="_blank" rel="noopener noreferrer" style={{ color: "#6366f1" }}>{detailJob.url}</a> : null },
               { label: "Notes", value: detailJob.notes },
@@ -299,7 +282,6 @@ export default function JobTracker() {
         </div>
       )}
 
-      {/* Add/Edit Modal */}
       {showModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
           <div style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: 520, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
@@ -313,7 +295,7 @@ export default function JobTracker() {
                 { key: "role", label: "Role *", full: false },
                 { key: "location", label: "Location", full: false },
                 { key: "salary", label: "Salary Range", full: false },
-                { key: "appliedDate", label: "Applied Date", full: false },
+                { key: "applied_date", label: "Applied Date", full: false },
                 { key: "contact", label: "Contact Email", full: false },
                 { key: "url", label: "Job URL", full: true },
                 { key: "notes", label: "Notes", full: true, multiline: true },
@@ -324,7 +306,7 @@ export default function JobTracker() {
                     <textarea value={form[field.key]} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
                       rows={3} style={{ width: "100%", padding: "8px 10px", borderRadius: 7, border: "1px solid #e5e7eb", fontSize: 13, outline: "none", resize: "vertical", boxSizing: "border-box" }} />
                   ) : (
-                    <input type="text" value={form[field.key]} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
+                    <input type="text" value={form[field.key] || ""} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
                       style={{ width: "100%", padding: "8px 10px", borderRadius: 7, border: "1px solid #e5e7eb", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
                   )}
                 </div>
