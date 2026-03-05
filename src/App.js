@@ -11,28 +11,98 @@ const supabase = createClient(
 const STATUSES = ["Saved", "Applied", "Phone Screen", "Interview", "Aptitude Test Scheduled", "Offer", "Rejected", "Withdrawn", "Position Closed", "Pending", "Received", "Submitted"];
 
 const STATUS_COLORS = {
-  "Saved": { bg: "bg-gray-100", text: "text-gray-700", dot: "bg-gray-400" },
-  "Applied": { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
-  "Phone Screen": { bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-500" },
-  "Interview": { bg: "bg-purple-100", text: "text-purple-700", dot: "bg-purple-500" },
-  "Aptitude Test Scheduled": { bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-400" },
-  "Offer": { bg: "bg-green-100", text: "text-green-700", dot: "bg-green-500" },
-  "Rejected": { bg: "bg-red-100", text: "text-red-600", dot: "bg-red-400" },
-  "Withdrawn": { bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-400" },
-  "Position Closed": { bg: "bg-red-100", text: "text-red-600", dot: "bg-red-400" },
-  "Pending": { bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-500" },
-  "Received": { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
-  "Submitted": { bg: "bg-indigo-100", text: "text-indigo-700", dot: "bg-indigo-500" },
+  "Saved": { bg: "#f3f4f6", color: "#374151", dot: "#9ca3af" },
+  "Applied": { bg: "#dbeafe", color: "#1d4ed8", dot: "#3b82f6" },
+  "Phone Screen": { bg: "#fef9c3", color: "#a16207", dot: "#eab308" },
+  "Interview": { bg: "#ede9fe", color: "#6d28d9", dot: "#8b5cf6" },
+  "Aptitude Test Scheduled": { bg: "#ffedd5", color: "#c2410c", dot: "#f97316" },
+  "Offer": { bg: "#dcfce7", color: "#15803d", dot: "#22c55e" },
+  "Rejected": { bg: "#fee2e2", color: "#dc2626", dot: "#ef4444" },
+  "Withdrawn": { bg: "#ffedd5", color: "#c2410c", dot: "#f97316" },
+  "Position Closed": { bg: "#fee2e2", color: "#dc2626", dot: "#ef4444" },
+  "Pending": { bg: "#fef9c3", color: "#a16207", dot: "#eab308" },
+  "Received": { bg: "#dbeafe", color: "#1d4ed8", dot: "#3b82f6" },
+  "Submitted": { bg: "#e0e7ff", color: "#4338ca", dot: "#6366f1" },
 };
 
-const DEFAULT_COLOR = { bg: "bg-gray-100", text: "text-gray-700", dot: "bg-gray-400" };
+const DEFAULT_COLOR = { bg: "#f3f4f6", color: "#374151", dot: "#9ca3af" };
+const getColor = (status) => STATUS_COLORS[status] || DEFAULT_COLOR;
 
 const EMPTY_FORM = {
   company: "", role: "", location: "", salary: "", url: "",
   status: "Saved", applied_date: "", notes: "", contact: "",
 };
 
+function AuthScreen({ onLogin }) {
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    setError(""); setMessage(""); setLoading(true);
+    if (mode === "login") {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) setError(error.message);
+    } else {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) setError(error.message);
+      else setMessage("Check your email to confirm your account, then log in!");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ background: "#fff", borderRadius: 20, padding: "40px 36px", width: "100%", maxWidth: 400, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div style={{ width: 52, height: 52, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+            <span style={{ fontSize: 26 }}>💼</span>
+          </div>
+          <div style={{ fontWeight: 800, fontSize: 24, color: "#111" }}>JobTrack</div>
+          <div style={{ color: "#9ca3af", fontSize: 14, marginTop: 4 }}>Track your job search in one place</div>
+        </div>
+
+        <div style={{ display: "flex", background: "#f3f4f6", borderRadius: 10, padding: 4, marginBottom: 24 }}>
+          {["login", "signup"].map(m => (
+            <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: "8px", borderRadius: 8, border: "none", background: mode === m ? "#fff" : "transparent", color: mode === m ? "#111" : "#6b7280", fontWeight: mode === m ? 600 : 400, cursor: "pointer", fontSize: 14, boxShadow: mode === m ? "0 1px 4px rgba(0,0,0,0.1)" : "none" }}>
+              {m === "login" ? "Log In" : "Sign Up"}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Password</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              onKeyDown={e => e.key === "Enter" && handleSubmit()}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
+          </div>
+
+          {error && <div style={{ background: "#fee2e2", color: "#dc2626", padding: "10px 12px", borderRadius: 8, fontSize: 13 }}>{error}</div>}
+          {message && <div style={{ background: "#dcfce7", color: "#15803d", padding: "10px 12px", borderRadius: 8, fontSize: 13 }}>{message}</div>}
+
+          <button onClick={handleSubmit} disabled={loading}
+            style={{ padding: "12px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, marginTop: 4 }}>
+            {loading ? "Please wait..." : mode === "login" ? "Log In" : "Create Account"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function JobTracker() {
+  const [session, setSession] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("board");
@@ -44,7 +114,12 @@ export default function JobTracker() {
   const [detailJob, setDetailJob] = useState(null);
   const [importMsg, setImportMsg] = useState("");
 
-  useEffect(() => { fetchJobs(); }, []);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+  }, []);
+
+  useEffect(() => { if (session) fetchJobs(); else { setJobs([]); setLoading(false); } }, [session]);
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -53,6 +128,8 @@ export default function JobTracker() {
     else setJobs(data || []);
     setLoading(false);
   };
+
+  const handleLogout = async () => { await supabase.auth.signOut(); setSession(null); };
 
   const handleImport = (e) => {
     const file = e.target.files[0];
@@ -72,6 +149,7 @@ export default function JobTracker() {
             status: STATUSES.includes(r["Status"]) ? r["Status"] : "Applied",
             notes: STATUSES.includes(r["Status"]) ? "" : (r["Status"] || ""),
             location: "", salary: "", url: "", contact: "",
+            user_id: session.user.id,
           }));
         const { error } = await supabase.from("jobs").insert(imported);
         if (error) { setImportMsg("❌ Import failed: " + error.message); }
@@ -96,11 +174,9 @@ export default function JobTracker() {
   const saveJob = async () => {
     if (!form.company || !form.role) return;
     if (editJob) {
-      const { error } = await supabase.from("jobs").update({ ...form }).eq("id", editJob);
-      if (error) console.error(error);
+      await supabase.from("jobs").update({ ...form }).eq("id", editJob);
     } else {
-      const { error } = await supabase.from("jobs").insert([{ ...form }]);
-      if (error) console.error(error);
+      await supabase.from("jobs").insert([{ ...form, user_id: session.user.id }]);
     }
     fetchJobs();
     closeModal();
@@ -117,10 +193,10 @@ export default function JobTracker() {
     setJobs(prev => prev.map(j => j.id === id ? { ...j, status } : j));
   };
 
-  const getColor = (status) => STATUS_COLORS[status] || DEFAULT_COLOR;
-
   const stats = STATUSES.reduce((acc, s) => { acc[s] = jobs.filter(j => j.status === s).length; return acc; }, {});
   const activeCount = jobs.filter(j => !["Rejected", "Withdrawn", "Position Closed"].includes(j.status)).length;
+
+  if (!session) return <AuthScreen />;
 
   return (
     <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: "100vh", background: "#f8f9fc" }}>
@@ -134,6 +210,7 @@ export default function JobTracker() {
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {importMsg && <span style={{ fontSize: 13, color: importMsg.startsWith("✅") ? "#10b981" : "#ef4444" }}>{importMsg}</span>}
+            <span style={{ fontSize: 13, color: "#9ca3af" }}>{session.user.email}</span>
             <label style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>
               📂 Import Excel
               <input type="file" accept=".xlsx,.xls" onChange={handleImport} style={{ display: "none" }} />
@@ -141,6 +218,7 @@ export default function JobTracker() {
             <button onClick={() => setView("board")} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid", borderColor: view === "board" ? "#6366f1" : "#e5e7eb", background: view === "board" ? "#eef2ff" : "#fff", color: view === "board" ? "#6366f1" : "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Board</button>
             <button onClick={() => setView("table")} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid", borderColor: view === "table" ? "#6366f1" : "#e5e7eb", background: view === "table" ? "#eef2ff" : "#fff", color: view === "table" ? "#6366f1" : "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Table</button>
             <button onClick={openAdd} style={{ padding: "6px 16px", borderRadius: 6, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff", border: "none", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>+ Add Job</button>
+            <button onClick={handleLogout} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#ef4444", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Log Out</button>
           </div>
         </div>
       </div>
@@ -230,7 +308,7 @@ export default function JobTracker() {
                       <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 500 }}>{job.salary || "—"}</td>
                       <td style={{ padding: "12px 16px" }}>
                         <select value={job.status} onChange={e => updateStatus(job.id, e.target.value)}
-                          style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: c.bg, fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}>
+                          style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: c.bg, color: c.color, fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none" }}>
                           {STATUSES.map(s => <option key={s}>{s}</option>)}
                         </select>
                       </td>
@@ -261,7 +339,7 @@ export default function JobTracker() {
           </div>
           <div style={{ padding: "20px 24px", flex: 1 }}>
             {[
-              { label: "Status", value: <span style={{ padding: "3px 10px", borderRadius: 12, fontSize: 12, fontWeight: 600, background: getColor(detailJob.status).bg }}>{detailJob.status}</span> },
+              { label: "Status", value: <span style={{ padding: "3px 10px", borderRadius: 12, fontSize: 12, fontWeight: 600, background: getColor(detailJob.status).bg, color: getColor(detailJob.status).color }}>{detailJob.status}</span> },
               { label: "Location", value: detailJob.location },
               { label: "Salary", value: detailJob.salary },
               { label: "Applied", value: detailJob.applied_date },
