@@ -288,12 +288,12 @@ export default function JobTracker() {
         )}
 
         {!loading && view === "table" && (
-          <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb", overflow: "hidden" }}>
+          <div style={{ background: darkMode ? "#1f2937" : "#fff", borderRadius: 12, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ background: "#f9fafb" }}>
+                <tr style={{ background: darkMode ? "#1f2937" : "#f9fafb" }}>
                   {["Company", "Role", "Location", "Salary", "Status", "Applied", "Actions"].map(h => (
-                    <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#6b7280", borderBottom: "1px solid #e5e7eb" }}>{h}</th>
+                    <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: darkMode ? "#d1d5db" : "#6b7280", borderBottom: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}` }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -304,7 +304,7 @@ export default function JobTracker() {
                 {filtered.map((job, i) => {
                   const c = getColor(job.status);
                   return (
-                    <tr key={job.id} style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
+                    <tr key={job.id} style={{ borderBottom: `1px solid ${darkMode ? "#374151" : "#f3f4f6"}`, background: i % 2 === 0 ? (darkMode ? "#1f2937" : "#fff") : (darkMode ? "#111827" : "#fafafa") }}>
                       <td style={{ padding: "12px 16px", fontWeight: 600, fontSize: 13, color: "#111", cursor: "pointer" }} onClick={() => setDetailJob(job)}>{job.company}</td>
                       <td style={{ padding: "12px 16px", fontSize: 13, color: "#374151" }}>{job.role}</td>
                       <td style={{ padding: "12px 16px", fontSize: 13, color: "#6b7280" }}>{job.location || "—"}</td>
