@@ -32,7 +32,7 @@ const EMPTY_FORM = {
   status: "Saved", applied_date: "", notes: "", contact: "",
 };
 
-function AuthScreen({ onLogin }) {
+function AuthScreen() {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,7 +63,6 @@ function AuthScreen({ onLogin }) {
           <div style={{ fontWeight: 800, fontSize: 24, color: "#111" }}>JobTrack</div>
           <div style={{ color: "#9ca3af", fontSize: 14, marginTop: 4 }}>Track your job search in one place</div>
         </div>
-
         <div style={{ display: "flex", background: "#f3f4f6", borderRadius: 10, padding: 4, marginBottom: 24 }}>
           {["login", "signup"].map(m => (
             <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: "8px", borderRadius: 8, border: "none", background: mode === m ? "#fff" : "transparent", color: mode === m ? "#111" : "#6b7280", fontWeight: mode === m ? 600 : 400, cursor: "pointer", fontSize: 14, boxShadow: mode === m ? "0 1px 4px rgba(0,0,0,0.1)" : "none" }}>
@@ -71,25 +70,20 @@ function AuthScreen({ onLogin }) {
             </button>
           ))}
         </div>
-
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com"
               style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
           </div>
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#374151", marginBottom: 6 }}>Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
               onKeyDown={e => e.key === "Enter" && handleSubmit()}
               style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
           </div>
-
           {error && <div style={{ background: "#fee2e2", color: "#dc2626", padding: "10px 12px", borderRadius: 8, fontSize: 13 }}>{error}</div>}
           {message && <div style={{ background: "#dcfce7", color: "#15803d", padding: "10px 12px", borderRadius: 8, fontSize: 13 }}>{message}</div>}
-
           <button onClick={handleSubmit} disabled={loading}
             style={{ padding: "12px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, marginTop: 4 }}>
             {loading ? "Please wait..." : mode === "login" ? "Log In" : "Create Account"}
@@ -116,7 +110,7 @@ export default function JobTracker() {
   const [resumeNotes, setResumeNotes] = useState("");
   const [resumeUploadMsg, setResumeUploadMsg] = useState("");
   const [collapsedColumns, setCollapsedColumns] = useState(() => {
-  try { return JSON.parse(localStorage.getItem("collapsedColumns")) || {}; } catch { return {}; }
+    try { return JSON.parse(localStorage.getItem("collapsedColumns")) || {}; } catch { return {}; }
   });
   const [showAccount, setShowAccount] = useState(false);
   const [profile, setProfile] = useState({ full_name: "" });
@@ -129,14 +123,14 @@ export default function JobTracker() {
   }, []);
 
   const fetchProfile = async () => {
-  const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
-  if (data) { setProfile(data); setAccountForm(f => ({ ...f, full_name: data.full_name || "" })); }
-};
+    const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+    if (data) { setProfile(data); setAccountForm(f => ({ ...f, full_name: data.full_name || "" })); }
+  };
 
-useEffect(() => {
-  if (session) { fetchJobs(); fetchProfile(); }
-  else { setJobs([]); setLoading(false); }
-}, [session]);
+  useEffect(() => {
+    if (session) { fetchJobs(); fetchProfile(); }
+    else { setJobs([]); setLoading(false); }
+  }, [session]);
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -211,62 +205,58 @@ useEffect(() => {
   };
 
   const handleResumeUpload = async (e, job) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  setResumeUploadMsg("Uploading...");
-  const filePath = `${session.user.id}/${job.id}_${file.name}`;
-  const { error: uploadError } = await supabase.storage.from("resumes").upload(filePath, file, { upsert: true });
-  if (uploadError) { setResumeUploadMsg("❌ Upload failed: " + uploadError.message); return; }
-  const { data: { publicUrl } } = supabase.storage.from("resumes").getPublicUrl(filePath);
-  await supabase.from("jobs").update({ resume_url: publicUrl, resume_name: file.name, resume_notes: resumeNotes }).eq("id", job.id);
-  setResumeUploadMsg("✅ Resume uploaded!");
-  setResumeNotes("");
-  fetchJobs();
-  setDetailJob(prev => ({ ...prev, resume_url: publicUrl, resume_name: file.name, resume_notes: resumeNotes }));
-  setTimeout(() => setResumeUploadMsg(""), 3000);
-};
+    const file = e.target.files[0];
+    if (!file) return;
+    setResumeUploadMsg("Uploading...");
+    const filePath = `${session.user.id}/${job.id}_${file.name}`;
+    const { error: uploadError } = await supabase.storage.from("resumes").upload(filePath, file, { upsert: true });
+    if (uploadError) { setResumeUploadMsg("❌ Upload failed: " + uploadError.message); return; }
+    const { data: { publicUrl } } = supabase.storage.from("resumes").getPublicUrl(filePath);
+    await supabase.from("jobs").update({ resume_url: publicUrl, resume_name: file.name, resume_notes: resumeNotes }).eq("id", job.id);
+    setResumeUploadMsg("✅ Resume uploaded!");
+    setResumeNotes("");
+    fetchJobs();
+    setDetailJob(prev => ({ ...prev, resume_url: publicUrl, resume_name: file.name, resume_notes: resumeNotes }));
+    setTimeout(() => setResumeUploadMsg(""), 3000);
+  };
 
-const removeResume = async (id) => {
-  await supabase.from("jobs").update({ resume_url: null, resume_name: null, resume_notes: null }).eq("id", id);
-  setDetailJob(prev => ({ ...prev, resume_url: null, resume_name: null, resume_notes: null }));
-  fetchJobs();
-};
+  const removeResume = async (id) => {
+    await supabase.from("jobs").update({ resume_url: null, resume_name: null, resume_notes: null }).eq("id", id);
+    setDetailJob(prev => ({ ...prev, resume_url: null, resume_name: null, resume_notes: null }));
+    fetchJobs();
+  };
 
-const toggleColumn = (status) => {
-  setCollapsedColumns(prev => {
-    const updated = { ...prev, [status]: !prev[status] };
-    localStorage.setItem("collapsedColumns", JSON.stringify(updated));
-    return updated;
-  });
-  const fetchProfile = async () => {
-  const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
-  if (data) { setProfile(data); setAccountForm(f => ({ ...f, full_name: data.full_name || "" })); }
-};
+  const toggleColumn = (status) => {
+    setCollapsedColumns(prev => {
+      const updated = { ...prev, [status]: !prev[status] };
+      localStorage.setItem("collapsedColumns", JSON.stringify(updated));
+      return updated;
+    });
+  };
 
-const saveProfile = async () => {
-  setAccountMsg("");
-  const { error } = await supabase.from("profiles").upsert({ id: session.user.id, full_name: accountForm.full_name });
-  if (error) { setAccountMsg("❌ " + error.message); return; }
-  if (accountForm.email && accountForm.email !== session.user.email) {
-    const { error: emailError } = await supabase.auth.updateUser({ email: accountForm.email });
-    if (emailError) { setAccountMsg("❌ " + emailError.message); return; }
-  }
-  if (accountForm.newPassword) {
-    const { error: passError } = await supabase.auth.updateUser({ password: accountForm.newPassword });
-    if (passError) { setAccountMsg("❌ " + passError.message); return; }
-  }
-  setProfile(p => ({ ...p, full_name: accountForm.full_name }));
-  setAccountMsg("✅ Profile updated!");
-  setTimeout(() => setAccountMsg(""), 3000);
-};
+  const saveProfile = async () => {
+    setAccountMsg("");
+    const { error } = await supabase.from("profiles").upsert({ id: session.user.id, full_name: accountForm.full_name });
+    if (error) { setAccountMsg("❌ " + error.message); return; }
+    if (accountForm.email && accountForm.email !== session.user.email) {
+      const { error: emailError } = await supabase.auth.updateUser({ email: accountForm.email });
+      if (emailError) { setAccountMsg("❌ " + emailError.message); return; }
+    }
+    if (accountForm.newPassword) {
+      const { error: passError } = await supabase.auth.updateUser({ password: accountForm.newPassword });
+      if (passError) { setAccountMsg("❌ " + passError.message); return; }
+    }
+    setProfile(p => ({ ...p, full_name: accountForm.full_name }));
+    setAccountMsg("✅ Profile updated!");
+    setTimeout(() => setAccountMsg(""), 3000);
+  };
 
-const deleteAccount = async () => {
-  if (!window.confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
-  await supabase.from("jobs").delete().eq("user_id", session.user.id);
-  await supabase.from("profiles").delete().eq("id", session.user.id);
-  await supabase.auth.signOut();
-};
-};
+  const deleteAccount = async () => {
+    if (!window.confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+    await supabase.from("jobs").delete().eq("user_id", session.user.id);
+    await supabase.from("profiles").delete().eq("id", session.user.id);
+    await supabase.auth.signOut();
+  };
 
   const stats = STATUSES.reduce((acc, s) => { acc[s] = jobs.filter(j => j.status === s).length; return acc; }, {});
   const activeCount = jobs.filter(j => !["Rejected", "Withdrawn", "Position Closed"].includes(j.status)).length;
@@ -275,6 +265,7 @@ const deleteAccount = async () => {
 
   return (
     <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: "100vh", background: darkMode ? "#111827" : "#f8f9fc", color: darkMode ? "#f9fafb" : "#111" }}>
+      {/* HEADER */}
       <div style={{ background: darkMode ? "#1f2937" : "#fff", borderBottom: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, padding: "0 24px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -296,14 +287,16 @@ const deleteAccount = async () => {
             <button onClick={() => { setView("table"); localStorage.setItem("view", "table"); }} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid", borderColor: view === "table" ? "#6366f1" : "#e5e7eb", background: view === "table" ? "#eef2ff" : "#fff", color: view === "table" ? "#6366f1" : "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Table</button>
             <button onClick={openAdd} style={{ padding: "6px 16px", borderRadius: 6, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff", border: "none", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>+ Add Job</button>
             <button onClick={() => setDarkMode(d => { localStorage.setItem("darkMode", !d); return !d; })} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>
-            {darkMode ? "☀️ Light" : "🌙 Dark"}
+              {darkMode ? "☀️ Light" : "🌙 Dark"}
             </button>
             <button onClick={handleLogout} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#ef4444", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Log Out</button>
           </div>
         </div>
       </div>
 
+      {/* MAIN CONTENT */}
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 24px" }}>
+        {/* STATS */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
           {[
             { label: "Total Applications", value: jobs.length, color: "#6366f1" },
@@ -318,6 +311,7 @@ const deleteAccount = async () => {
           ))}
         </div>
 
+        {/* FILTERS */}
         <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search company or role…"
             style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13, outline: "none", width: 220, background: "#fff" }} />
@@ -332,6 +326,7 @@ const deleteAccount = async () => {
 
         {loading && <div style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>Loading jobs...</div>}
 
+        {/* BOARD VIEW */}
         {!loading && view === "board" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12 }}>
             {STATUSES.filter(status => filtered.some(j => j.status === status) || collapsedColumns[status]).map(status => {
@@ -339,27 +334,27 @@ const deleteAccount = async () => {
               const c = getColor(status);
               return (
                 <div key={status} style={{ background: darkMode ? "#1f2937" : "#fff", borderRadius: 12, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, overflow: "hidden" }}>
-                  <div onClick={() => toggleColumn(status)} style={{ padding: "12px 16px", borderBottom: collapsedColumns[status] ? "none" : "1px solid #f3f4f6", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", userSelect: "none" }}>
+                  <div onClick={() => toggleColumn(status)} style={{ padding: "12px 16px", borderBottom: collapsedColumns[status] ? "none" : `1px solid ${darkMode ? "#374151" : "#f3f4f6"}`, display: "flex", alignItems: "center", gap: 8, cursor: "pointer", userSelect: "none" }}>
                     <span style={{ width: 8, height: 8, borderRadius: "50%", background: c.dot, display: "inline-block" }} />
                     <span style={{ fontWeight: 600, fontSize: 13, color: darkMode ? "#d1d5db" : "#374151" }}>{status}</span>
                     <span style={{ marginLeft: "auto", background: darkMode ? "#374151" : "#f3f4f6", color: darkMode ? "#d1d5db" : "#6b7280", borderRadius: 10, padding: "1px 8px", fontSize: 12 }}>{cols.length}</span>
                     <span style={{ fontSize: 10, color: "#9ca3af" }}>{collapsedColumns[status] ? "▶" : "▼"}</span>
                   </div>
                   {!collapsedColumns[status] && (
-                  <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, minHeight: 60 }}>
-                    {cols.length === 0 && <div style={{ color: "#d1d5db", fontSize: 12, textAlign: "center", padding: "12px 0" }}>No applications</div>}
-                    {cols.map(job => (
-                      <div key={job.id} onClick={() => setDetailJob(job)} style={{ background: darkMode ? "#111827" : "#fafafa", border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, borderRadius: 8, padding: "10px 12px", cursor: "pointer" }}
-                        onMouseEnter={e => e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)"}
-                        onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
-                        <div style={{ fontWeight: 600, fontSize: 13, color: darkMode ? "#d1d5db" : "#111" }}>{job.company}</div>
-                        <div style={{ fontSize: 12, color: darkMode ? "#9ca3af" : "#6b7280", marginTop: 2 }}>{job.role}</div>
-                        {job.location && <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>📍 {job.location}</div>}
-                        {job.applied_date && <div style={{ fontSize: 11, color: "#9ca3af" }}>📅 {job.applied_date}</div>}
-                        {job.notes && <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4, fontStyle: "italic" }}>{job.notes.substring(0, 60)}{job.notes.length > 60 ? "…" : ""}</div>}
-                      </div>
-                    ))}
-                  </div>
+                    <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, minHeight: 60 }}>
+                      {cols.length === 0 && <div style={{ color: "#d1d5db", fontSize: 12, textAlign: "center", padding: "12px 0" }}>No applications</div>}
+                      {cols.map(job => (
+                        <div key={job.id} onClick={() => setDetailJob(job)} style={{ background: darkMode ? "#111827" : "#fafafa", border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, borderRadius: 8, padding: "10px 12px", cursor: "pointer" }}
+                          onMouseEnter={e => e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)"}
+                          onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
+                          <div style={{ fontWeight: 600, fontSize: 13, color: darkMode ? "#d1d5db" : "#111" }}>{job.company}</div>
+                          <div style={{ fontSize: 12, color: darkMode ? "#9ca3af" : "#6b7280", marginTop: 2 }}>{job.role}</div>
+                          {job.location && <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>📍 {job.location}</div>}
+                          {job.applied_date && <div style={{ fontSize: 11, color: "#9ca3af" }}>📅 {job.applied_date}</div>}
+                          {job.notes && <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4, fontStyle: "italic" }}>{job.notes.substring(0, 60)}{job.notes.length > 60 ? "…" : ""}</div>}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               );
@@ -367,6 +362,7 @@ const deleteAccount = async () => {
           </div>
         )}
 
+        {/* TABLE VIEW */}
         {!loading && view === "table" && (
           <div style={{ background: darkMode ? "#1f2937" : "#fff", borderRadius: 12, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -411,11 +407,12 @@ const deleteAccount = async () => {
         )}
       </div>
 
+      {/* JOB DETAIL DRAWER */}
       {detailJob && (
-        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 360, background: "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", zIndex: 50, overflowY: "auto", display: "flex", flexDirection: "column" }}>
-          <div style={{ padding: "20px 24px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 360, background: darkMode ? "#1f2937" : "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", zIndex: 50, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          <div style={{ padding: "20px 24px", borderBottom: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 18, color: "#111" }}>{detailJob.company}</div>
+              <div style={{ fontWeight: 700, fontSize: 18, color: darkMode ? "#f9fafb" : "#111" }}>{detailJob.company}</div>
               <div style={{ color: "#6b7280", fontSize: 14, marginTop: 2 }}>{detailJob.role}</div>
             </div>
             <button onClick={() => setDetailJob(null)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#9ca3af" }}>×</button>
@@ -432,86 +429,84 @@ const deleteAccount = async () => {
             ].map(row => row.value ? (
               <div key={row.label} style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{row.label}</div>
-                <div style={{ fontSize: 14, color: "#374151" }}>{row.value}</div>
+                <div style={{ fontSize: 14, color: darkMode ? "#d1d5db" : "#374151" }}>{row.value}</div>
               </div>
             ) : null)}
           </div>
           <div style={{ padding: "16px 24px", borderTop: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}` }}>
-            {/* Resume Section */}
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Resume</div>
-                {detailJob.resume_url ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: darkMode ? "#111827" : "#f9fafb", borderRadius: 8, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}` }}>
-                    <span style={{ fontSize: 20 }}>📄</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: darkMode ? "#d1d5db" : "#111" }}>{detailJob.resume_name}</div>
-                      {detailJob.resume_notes && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{detailJob.resume_notes}</div>}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Resume</div>
+              {detailJob.resume_url ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: darkMode ? "#111827" : "#f9fafb", borderRadius: 8, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}` }}>
+                  <span style={{ fontSize: 20 }}>📄</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: darkMode ? "#d1d5db" : "#111" }}>{detailJob.resume_name}</div>
+                    {detailJob.resume_notes && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{detailJob.resume_notes}</div>}
+                  </div>
+                  <a href={detailJob.resume_url} target="_blank" rel="noopener noreferrer" style={{ padding: "4px 10px", borderRadius: 6, background: "#eef2ff", color: "#6366f1", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>View</a>
+                  <button onClick={() => removeResume(detailJob.id)} style={{ padding: "4px 10px", borderRadius: 6, background: "#fee2e2", color: "#ef4444", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer" }}>Remove</button>
+                </div>
+              ) : (
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: darkMode ? "#111827" : "#f9fafb", borderRadius: 8, border: `2px dashed ${darkMode ? "#374151" : "#e5e7eb"}`, cursor: "pointer" }}>
+                    <span style={{ fontSize: 20 }}>📎</span>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: darkMode ? "#d1d5db" : "#374151" }}>Attach Resume</div>
+                      <div style={{ fontSize: 11, color: "#9ca3af" }}>PDF files only</div>
                     </div>
-                    <a href={detailJob.resume_url} target="_blank" rel="noopener noreferrer" style={{ padding: "4px 10px", borderRadius: 6, background: "#eef2ff", color: "#6366f1", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>View</a>
-                    <button onClick={() => removeResume(detailJob.id)} style={{ padding: "4px 10px", borderRadius: 6, background: "#fee2e2", color: "#ef4444", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer" }}>Remove</button>
-                  </div>
-                ) : (
-                  <div>
-                    <label style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: darkMode ? "#111827" : "#f9fafb", borderRadius: 8, border: `2px dashed ${darkMode ? "#374151" : "#e5e7eb"}`, cursor: "pointer" }}>
-                      <span style={{ fontSize: 20 }}>📎</span>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: darkMode ? "#d1d5db" : "#374151" }}>Attach Resume</div>
-                        <div style={{ fontSize: 11, color: "#9ca3af" }}>PDF files only</div>
-                      </div>
-                      <input type="file" accept=".pdf" onChange={(e) => handleResumeUpload(e, detailJob)} style={{ display: "none" }} />
-                    </label>
-                    <input placeholder="Notes about this resume version (optional)" value={resumeNotes} onChange={e => setResumeNotes(e.target.value)}
-                      style={{ width: "100%", marginTop: 8, padding: "8px 10px", borderRadius: 7, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, fontSize: 12, outline: "none", background: darkMode ? "#111827" : "#fff", color: darkMode ? "#d1d5db" : "#111", boxSizing: "border-box" }} />
-                  </div>
-                )}
-                {resumeUploadMsg && <div style={{ fontSize: 12, color: resumeUploadMsg.startsWith("✅") ? "#10b981" : "#ef4444", marginTop: 6 }}>{resumeUploadMsg}</div>}
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => { openEdit(detailJob); setDetailJob(null); }} style={{ flex: 1, padding: "10px", borderRadius: 8, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, background: darkMode ? "#1f2937" : "#fff", color: darkMode ? "#d1d5db" : "#374151", fontWeight: 600, cursor: "pointer" }}>Edit</button>
-                <button onClick={() => deleteJob(detailJob.id)} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#fee2e2", color: "#ef4444", fontWeight: 600, cursor: "pointer" }}>Delete</button>
-              </div>
+                    <input type="file" accept=".pdf" onChange={(e) => handleResumeUpload(e, detailJob)} style={{ display: "none" }} />
+                  </label>
+                  <input placeholder="Notes about this resume version (optional)" value={resumeNotes} onChange={e => setResumeNotes(e.target.value)}
+                    style={{ width: "100%", marginTop: 8, padding: "8px 10px", borderRadius: 7, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, fontSize: 12, outline: "none", background: darkMode ? "#111827" : "#fff", color: darkMode ? "#d1d5db" : "#111", boxSizing: "border-box" }} />
+                </div>
+              )}
+              {resumeUploadMsg && <div style={{ fontSize: 12, color: resumeUploadMsg.startsWith("✅") ? "#10b981" : "#ef4444", marginTop: 6 }}>{resumeUploadMsg}</div>}
             </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => { openEdit(detailJob); setDetailJob(null); }} style={{ flex: 1, padding: "10px", borderRadius: 8, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, background: darkMode ? "#1f2937" : "#fff", color: darkMode ? "#d1d5db" : "#374151", fontWeight: 600, cursor: "pointer" }}>Edit</button>
+              <button onClick={() => deleteJob(detailJob.id)} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#fee2e2", color: "#ef4444", fontWeight: 600, cursor: "pointer" }}>Delete</button>
+            </div>
+          </div>
         </div>
       )}
 
+      {/* ACCOUNT DRAWER */}
       {showAccount && (
-  <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 360, background: darkMode ? "#1f2937" : "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", zIndex: 50, overflowY: "auto", display: "flex", flexDirection: "column" }}>
-    <div style={{ padding: "20px 24px", borderBottom: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <span style={{ fontWeight: 700, fontSize: 18, color: darkMode ? "#f9fafb" : "#111" }}>Account</span>
-      <button onClick={() => setShowAccount(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#9ca3af" }}>×</button>
-    </div>
-    <div style={{ padding: "20px 24px", flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ padding: "16px", background: darkMode ? "#111827" : "#f9fafb", borderRadius: 12, textAlign: "center" }}>
-        <div style={{ width: 56, height: 56, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", fontSize: 24 }}>
-          {profile.full_name ? profile.full_name[0].toUpperCase() : "👤"}
+        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 360, background: darkMode ? "#1f2937" : "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", zIndex: 50, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          <div style={{ padding: "20px 24px", borderBottom: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontWeight: 700, fontSize: 18, color: darkMode ? "#f9fafb" : "#111" }}>Account</span>
+            <button onClick={() => setShowAccount(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#9ca3af" }}>×</button>
+          </div>
+          <div style={{ padding: "20px 24px", flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ padding: "16px", background: darkMode ? "#111827" : "#f9fafb", borderRadius: 12, textAlign: "center" }}>
+              <div style={{ width: 56, height: 56, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", fontSize: 24 }}>
+                {profile.full_name ? profile.full_name[0].toUpperCase() : "👤"}
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 16, color: darkMode ? "#f9fafb" : "#111" }}>{profile.full_name || "No name set"}</div>
+              <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 2 }}>{session.user.email}</div>
+            </div>
+            {[
+              { key: "full_name", label: "Full Name", type: "text", placeholder: "Your full name" },
+              { key: "email", label: "New Email", type: "email", placeholder: session.user.email },
+              { key: "newPassword", label: "New Password", type: "password", placeholder: "Leave blank to keep current" },
+            ].map(field => (
+              <div key={field.key}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: darkMode ? "#d1d5db" : "#374151", marginBottom: 5 }}>{field.label}</label>
+                <input type={field.type} value={accountForm[field.key]} onChange={e => setAccountForm(f => ({ ...f, [field.key]: e.target.value }))}
+                  placeholder={field.placeholder}
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 7, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, fontSize: 13, outline: "none", background: darkMode ? "#111827" : "#fff", color: darkMode ? "#d1d5db" : "#111", boxSizing: "border-box" }} />
+              </div>
+            ))}
+            {accountMsg && <div style={{ padding: "10px 12px", borderRadius: 8, background: accountMsg.startsWith("✅") ? "#dcfce7" : "#fee2e2", color: accountMsg.startsWith("✅") ? "#15803d" : "#dc2626", fontSize: 13 }}>{accountMsg}</div>}
+          </div>
+          <div style={{ padding: "16px 24px", borderTop: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, display: "flex", flexDirection: "column", gap: 8 }}>
+            <button onClick={saveProfile} style={{ padding: "10px", borderRadius: 8, border: "none", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff", fontWeight: 600, cursor: "pointer" }}>Save Changes</button>
+            <button onClick={deleteAccount} style={{ padding: "10px", borderRadius: 8, border: "none", background: "#fee2e2", color: "#ef4444", fontWeight: 600, cursor: "pointer" }}>Delete Account</button>
+          </div>
         </div>
-        <div style={{ fontWeight: 700, fontSize: 16, color: darkMode ? "#f9fafb" : "#111" }}>{profile.full_name || "No name set"}</div>
-        <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 2 }}>{session.user.email}</div>
-      </div>
+      )}
 
-      {[
-        { key: "full_name", label: "Full Name", type: "text", placeholder: "Your full name" },
-        { key: "email", label: "New Email", type: "email", placeholder: session.user.email },
-        { key: "newPassword", label: "New Password", type: "password", placeholder: "Leave blank to keep current" },
-      ].map(field => (
-        <div key={field.key}>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: darkMode ? "#d1d5db" : "#374151", marginBottom: 5 }}>{field.label}</label>
-          <input type={field.type} value={accountForm[field.key]} onChange={e => setAccountForm(f => ({ ...f, [field.key]: e.target.value }))}
-            placeholder={field.placeholder}
-            style={{ width: "100%", padding: "8px 10px", borderRadius: 7, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, fontSize: 13, outline: "none", background: darkMode ? "#111827" : "#fff", color: darkMode ? "#d1d5db" : "#111", boxSizing: "border-box" }} />
-        </div>
-      ))}
-
-      {accountMsg && <div style={{ padding: "10px 12px", borderRadius: 8, background: accountMsg.startsWith("✅") ? "#dcfce7" : "#fee2e2", color: accountMsg.startsWith("✅") ? "#15803d" : "#dc2626", fontSize: 13 }}>{accountMsg}</div>}
-    </div>
-
-    <div style={{ padding: "16px 24px", borderTop: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, display: "flex", flexDirection: "column", gap: 8 }}>
-      <button onClick={saveProfile} style={{ padding: "10px", borderRadius: 8, border: "none", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff", fontWeight: 600, cursor: "pointer" }}>Save Changes</button>
-      <button onClick={deleteAccount} style={{ padding: "10px", borderRadius: 8, border: "none", background: "#fee2e2", color: "#ef4444", fontWeight: 600, cursor: "pointer" }}>Delete Account</button>
-    </div>
-  </div>
-)}
-
+      {/* ADD/EDIT MODAL */}
       {showModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
           <div style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: 520, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
