@@ -302,7 +302,8 @@ const toggleColumn = (status) => {
                     <span style={{ marginLeft: "auto", background: darkMode ? "#374151" : "#f3f4f6", color: darkMode ? "#d1d5db" : "#6b7280", borderRadius: 10, padding: "1px 8px", fontSize: 12 }}>{cols.length}</span>
                     <span style={{ fontSize: 10, color: "#9ca3af" }}>{collapsedColumns[status] ? "▶" : "▼"}</span>
                   </div>
-                  {!collapsedColumns[status] && <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, minHeight: 60 }}>
+                  {!collapsedColumns[status] && (
+                  <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, minHeight: 60 }}>
                     {cols.length === 0 && <div style={{ color: "#d1d5db", fontSize: 12, textAlign: "center", padding: "12px 0" }}>No applications</div>}
                     {cols.map(job => (
                       <div key={job.id} onClick={() => setDetailJob(job)} style={{ background: darkMode ? "#111827" : "#fafafa", border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, borderRadius: 8, padding: "10px 12px", cursor: "pointer" }}
@@ -315,7 +316,8 @@ const toggleColumn = (status) => {
                         {job.notes && <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4, fontStyle: "italic" }}>{job.notes.substring(0, 60)}{job.notes.length > 60 ? "…" : ""}</div>}
                       </div>
                     ))}
-                  </div>}
+                  </div>
+                  )}
                 </div>
               );
             })}
