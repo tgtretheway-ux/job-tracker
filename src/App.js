@@ -264,7 +264,7 @@ export default function JobTracker() {
                 <div key={status} style={{ background: darkMode ? "#1f2937" : "#fff", borderRadius: 12, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, overflow: "hidden" }}>
                   <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ width: 8, height: 8, borderRadius: "50%", background: c.dot, display: "inline-block" }} />
-                    <span style={{ fontWeight: 600, fontSize: 13, color: "#374151" }}>{status}</span>
+                    <span style={{ fontWeight: 600, fontSize: 13, color: darkMode ? "#d1d5db" : "#374151" }}>{status}</span>
                     <span style={{ marginLeft: "auto", background: "#f3f4f6", color: "#6b7280", borderRadius: 10, padding: "1px 8px", fontSize: 12 }}>{cols.length}</span>
                   </div>
                   <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, minHeight: 60 }}>
