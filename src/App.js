@@ -234,9 +234,9 @@ export default function JobTracker() {
             { label: "Interviews", value: stats["Interview"] || 0, color: "#a855f7" },
             { label: "Offers", value: stats["Offer"] || 0, color: "#10b981" },
           ].map(s => (
-            <div key={s.label} style={{ background: "#fff", borderRadius: 12, padding: "16px 20px", border: "1px solid #e5e7eb" }}>
+            <div key={s.label} style={{ background: darkMode ? "#1f2937" : "#fff", borderRadius: 12, padding: "16px 20px", border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}` }}>
               <div style={{ fontSize: 28, fontWeight: 700, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{s.label}</div>
+              <div style={{ fontSize: 12, color: darkMode ? "#6b7280" : "#9ca3af", marginTop: 2 }}>{s.label}</div>
             </div>
           ))}
         </div>
