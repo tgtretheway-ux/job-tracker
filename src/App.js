@@ -102,7 +102,7 @@ function AuthScreen({ onLogin }) {
 
 export default function JobTracker() {
   const [session, setSession] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("board");
@@ -218,7 +218,7 @@ export default function JobTracker() {
             <button onClick={() => setView("board")} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid", borderColor: view === "board" ? "#6366f1" : "#e5e7eb", background: view === "board" ? "#eef2ff" : "#fff", color: view === "board" ? "#6366f1" : "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Board</button>
             <button onClick={() => setView("table")} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid", borderColor: view === "table" ? "#6366f1" : "#e5e7eb", background: view === "table" ? "#eef2ff" : "#fff", color: view === "table" ? "#6366f1" : "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Table</button>
             <button onClick={openAdd} style={{ padding: "6px 16px", borderRadius: 6, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff", border: "none", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>+ Add Job</button>
-            <button onClick={() => setDarkMode(d => !d)} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>
+            <button onClick={() => setDarkMode(d => { localStorage.setItem("darkMode", !d); return !d; })} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>
             {darkMode ? "☀️ Light" : "🌙 Dark"}
             </button>
             <button onClick={handleLogout} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#ef4444", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Log Out</button>
