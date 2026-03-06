@@ -8,7 +8,7 @@ const supabase = createClient(
   process.env.REACT_APP_SUPABASE_KEY
 );
 
-const STATUSES = ["Saved", "Applied", "Interview", "Aptitude Test Scheduled", "Offer", "Rejected", "Withdrawn", "Position Closed", "Pending", "Received", "Submitted"];
+const STATUSES = ["Saved", "Applied", "Received", "Pending", "Submitted", "Interview", "Aptitude Test Scheduled", "Offer", "Rejected", "Position Closed", "Withdrawn"];
 
 const STATUS_COLORS = {
   "Saved": { bg: "#f3f4f6", color: "#374151", dot: "#9ca3af" },
