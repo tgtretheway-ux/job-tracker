@@ -292,7 +292,7 @@ const toggleColumn = (status) => {
 
         {!loading && view === "board" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12 }}>
-            {STATUSES.map(status => {
+            {STATUSES.filter(status => filtered.some(j => j.status === status) || collapsedColumns[status]).map(status => {
               const cols = filtered.filter(j => j.status === status);
               const c = getColor(status);
               return (
