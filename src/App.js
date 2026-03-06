@@ -236,7 +236,7 @@ export default function JobTracker() {
           ].map(s => (
             <div key={s.label} style={{ background: darkMode ? "#1f2937" : "#fff", borderRadius: 12, padding: "16px 20px", border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}` }}>
               <div style={{ fontSize: 28, fontWeight: 700, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: darkMode ? "#6b7280" : "#9ca3af", marginTop: 2 }}>{s.label}</div>
+              <div style={{ fontSize: 12, color: darkMode ? "#d1d5db" : "#9ca3af", marginTop: 2 }}>{s.label}</div>
             </div>
           ))}
         </div>
