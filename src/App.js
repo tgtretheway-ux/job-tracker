@@ -115,6 +115,9 @@ export default function JobTracker() {
   const [importMsg, setImportMsg] = useState("");
   const [resumeNotes, setResumeNotes] = useState("");
   const [resumeUploadMsg, setResumeUploadMsg] = useState("");
+  const [collapsedColumns, setCollapsedColumns] = useState(() => {
+  try { return JSON.parse(localStorage.getItem("collapsedColumns")) || {}; } catch { return {}; }
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -215,6 +218,13 @@ const removeResume = async (id) => {
   await supabase.from("jobs").update({ resume_url: null, resume_name: null, resume_notes: null }).eq("id", id);
   setDetailJob(prev => ({ ...prev, resume_url: null, resume_name: null, resume_notes: null }));
   fetchJobs();
+const toggleColumn = (status) => {
+  setCollapsedColumns(prev => {
+    const updated = { ...prev, [status]: !prev[status] };
+    localStorage.setItem("collapsedColumns", JSON.stringify(updated));
+    return updated;
+  });
+};
 };
 
   const stats = STATUSES.reduce((acc, s) => { acc[s] = jobs.filter(j => j.status === s).length; return acc; }, {});
@@ -286,12 +296,13 @@ const removeResume = async (id) => {
               const c = getColor(status);
               return (
                 <div key={status} style={{ background: darkMode ? "#1f2937" : "#fff", borderRadius: 12, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, overflow: "hidden" }}>
-                  <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", display: "flex", alignItems: "center", gap: 8 }}>
+                  <div onClick={() => toggleColumn(status)} style={{ padding: "12px 16px", borderBottom: collapsedColumns[status] ? "none" : "1px solid #f3f4f6", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", userSelect: "none" }}>
                     <span style={{ width: 8, height: 8, borderRadius: "50%", background: c.dot, display: "inline-block" }} />
                     <span style={{ fontWeight: 600, fontSize: 13, color: darkMode ? "#d1d5db" : "#374151" }}>{status}</span>
-                    <span style={{ marginLeft: "auto", background: "#f3f4f6", color: "#6b7280", borderRadius: 10, padding: "1px 8px", fontSize: 12 }}>{cols.length}</span>
+                    <span style={{ marginLeft: "auto", background: darkMode ? "#374151" : "#f3f4f6", color: darkMode ? "#d1d5db" : "#6b7280", borderRadius: 10, padding: "1px 8px", fontSize: 12 }}>{cols.length}</span>
+                    <span style={{ fontSize: 10, color: "#9ca3af" }}>{collapsedColumns[status] ? "▶" : "▼"}</span>
                   </div>
-                  <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, minHeight: 60 }}>
+                  {!collapsedColumns[status] && <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, minHeight: 60 }}>
                     {cols.length === 0 && <div style={{ color: "#d1d5db", fontSize: 12, textAlign: "center", padding: "12px 0" }}>No applications</div>}
                     {cols.map(job => (
                       <div key={job.id} onClick={() => setDetailJob(job)} style={{ background: darkMode ? "#111827" : "#fafafa", border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, borderRadius: 8, padding: "10px 12px", cursor: "pointer" }}
@@ -304,7 +315,7 @@ const removeResume = async (id) => {
                         {job.notes && <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4, fontStyle: "italic" }}>{job.notes.substring(0, 60)}{job.notes.length > 60 ? "…" : ""}</div>}
                       </div>
                     ))}
-                  </div>
+                  </div>}
                 </div>
               );
             })}
