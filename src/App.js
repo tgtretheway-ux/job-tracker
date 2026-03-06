@@ -218,13 +218,14 @@ const removeResume = async (id) => {
   await supabase.from("jobs").update({ resume_url: null, resume_name: null, resume_notes: null }).eq("id", id);
   setDetailJob(prev => ({ ...prev, resume_url: null, resume_name: null, resume_notes: null }));
   fetchJobs();
+};
+
 const toggleColumn = (status) => {
   setCollapsedColumns(prev => {
     const updated = { ...prev, [status]: !prev[status] };
     localStorage.setItem("collapsedColumns", JSON.stringify(updated));
     return updated;
   });
-};
 };
 
   const stats = STATUSES.reduce((acc, s) => { acc[s] = jobs.filter(j => j.status === s).length; return acc; }, {});
