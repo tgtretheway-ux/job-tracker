@@ -8,12 +8,11 @@ const supabase = createClient(
   process.env.REACT_APP_SUPABASE_KEY
 );
 
-const STATUSES = ["Saved", "Applied", "Phone Screen", "Interview", "Aptitude Test Scheduled", "Offer", "Rejected", "Withdrawn", "Position Closed", "Pending", "Received", "Submitted"];
+const STATUSES = ["Saved", "Applied", "Interview", "Aptitude Test Scheduled", "Offer", "Rejected", "Withdrawn", "Position Closed", "Pending", "Received", "Submitted"];
 
 const STATUS_COLORS = {
   "Saved": { bg: "#f3f4f6", color: "#374151", dot: "#9ca3af" },
   "Applied": { bg: "#dbeafe", color: "#1d4ed8", dot: "#3b82f6" },
-  "Phone Screen": { bg: "#fef9c3", color: "#a16207", dot: "#eab308" },
   "Interview": { bg: "#ede9fe", color: "#6d28d9", dot: "#8b5cf6" },
   "Aptitude Test Scheduled": { bg: "#ffedd5", color: "#c2410c", dot: "#f97316" },
   "Offer": { bg: "#dcfce7", color: "#15803d", dot: "#22c55e" },
