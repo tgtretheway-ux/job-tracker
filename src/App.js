@@ -199,8 +199,8 @@ export default function JobTracker() {
   if (!session) return <AuthScreen />;
 
   return (
-    <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: "100vh", background: "#f8f9fc" }}>
-      <div style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "0 24px" }}>
+    <div style={{ fontFamily: "'Inter', -apple-system, sans-serif", minHeight: "100vh", background: darkMode ? "#111827" : "#f8f9fc", color: darkMode ? "#f9fafb" : "#111" }}>
+      <div style={{ background: darkMode ? "#1f2937" : "#fff", borderBottom: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, padding: "0 24px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 32, height: 32, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -219,8 +219,8 @@ export default function JobTracker() {
             <button onClick={() => setView("table")} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid", borderColor: view === "table" ? "#6366f1" : "#e5e7eb", background: view === "table" ? "#eef2ff" : "#fff", color: view === "table" ? "#6366f1" : "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Table</button>
             <button onClick={openAdd} style={{ padding: "6px 16px", borderRadius: 6, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff", border: "none", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>+ Add Job</button>
             <button onClick={() => setDarkMode(d => !d)} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>
-  {darkMode ? "☀️ Light" : "🌙 Dark"}
-</button>
+            {darkMode ? "☀️ Light" : "🌙 Dark"}
+            </button>
             <button onClick={handleLogout} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#ef4444", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>Log Out</button>
           </div>
         </div>
