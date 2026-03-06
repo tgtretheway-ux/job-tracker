@@ -116,6 +116,7 @@ export default function JobTracker() {
   const [profile, setProfile] = useState({ full_name: "" });
   const [accountForm, setAccountForm] = useState({ full_name: "", email: "", newPassword: "" });
   const [accountMsg, setAccountMsg] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -177,6 +178,21 @@ export default function JobTracker() {
     const matchSearch = !search || j.company.toLowerCase().includes(search.toLowerCase()) || j.role.toLowerCase().includes(search.toLowerCase());
     return matchStatus && matchSearch;
   });
+
+  const handleSort = (key) => {
+  setSortConfig(prev => ({
+    key,
+    direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc"
+  }));
+};
+
+const sortedFiltered = [...filtered].sort((a, b) => {
+  if (!sortConfig.key) return 0;
+  const aVal = a[sortConfig.key] || "";
+  const bVal = b[sortConfig.key] || "";
+  const result = aVal.toString().localeCompare(bVal.toString());
+  return sortConfig.direction === "asc" ? result : -result;
+});
 
   const openAdd = () => { setForm(EMPTY_FORM); setEditJob(null); setShowModal(true); };
   const openEdit = (job) => { setForm({ ...job }); setEditJob(job.id); setShowModal(true); };
@@ -368,8 +384,22 @@ export default function JobTracker() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: darkMode ? "#1f2937" : "#f9fafb" }}>
-                  {["Company", "Role", "Location", "Salary", "Status", "Applied", "Actions"].map(h => (
-                    <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: darkMode ? "#d1d5db" : "#6b7280", borderBottom: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}` }}>{h}</th>
+                  {[
+                    { label: "Company", key: null },
+                    { label: "Role", key: null },
+                    { label: "Location", key: null },
+                    { label: "Salary", key: "salary" },
+                    { label: "Status", key: "status" },
+                    { label: "Applied", key: "applied_date" },
+                    { label: "Actions", key: null },
+                  ].map(h => (
+                    <th key={h.label} onClick={h.key ? () => handleSort(h.key) : undefined}
+                      style={{ padding: "10px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: darkMode ? "#d1d5db" : "#6b7280", borderBottom: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, cursor: h.key ? "pointer" : "default", userSelect: "none", whiteSpace: "nowrap" }}>
+                      {h.label}
+                      {h.key && <span style={{ marginLeft: 4, color: sortConfig.key === h.key ? "#6366f1" : "#d1d5db" }}>
+                        {sortConfig.key === h.key ? (sortConfig.direction === "asc" ? " ▲" : " ▼") : " ↕"}
+                      </span>}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -377,7 +407,7 @@ export default function JobTracker() {
                 {filtered.length === 0 && (
                   <tr><td colSpan={7} style={{ padding: 32, textAlign: "center", color: "#9ca3af", fontSize: 14 }}>No applications found.</td></tr>
                 )}
-                {filtered.map((job, i) => {
+                {sortedFiltered.map((job, i) => {
                   const c = getColor(job.status);
                   return (
                     <tr key={job.id} style={{ borderBottom: `1px solid ${darkMode ? "#374151" : "#f3f4f6"}`, background: i % 2 === 0 ? (darkMode ? "#1f2937" : "#fff") : (darkMode ? "#111827" : "#fafafa") }}>
