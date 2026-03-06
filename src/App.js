@@ -521,7 +521,7 @@ const sortedFiltered = [...filtered].sort((a, b) => {
 
       {/* ACCOUNT DRAWER */}
       {showAccount && (
-        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 360, background: darkMode ? "#1f2937" : "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", zIndex: 50, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 360, background: darkMode ? "#1f2937" : "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", zIndex: 50, overflowY: "auto", display: "flex", flexDirection: "column", animation: "slideInRight 0.25s ease" }}>
           <div style={{ padding: "20px 24px", borderBottom: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontWeight: 700, fontSize: 18, color: darkMode ? "#f9fafb" : "#111" }}>Account</span>
             <button onClick={() => setShowAccount(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#9ca3af" }}>×</button>
