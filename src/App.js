@@ -206,7 +206,7 @@ export default function JobTracker() {
             <div style={{ width: 32, height: 32, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ color: "#fff", fontSize: 16 }}>💼</span>
             </div>
-            <span style={{ fontWeight: 700, fontSize: 18, color: "#111" }}>JobTrack</span>
+            <span style={{ fontWeight: 700, fontSize: 18, color: darkMode ? "#f9fafb" : "#111" }}>JobTrack</span>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {importMsg && <span style={{ fontSize: 13, color: importMsg.startsWith("✅") ? "#10b981" : "#ef4444" }}>{importMsg}</span>}
