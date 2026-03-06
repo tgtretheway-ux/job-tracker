@@ -113,6 +113,8 @@ export default function JobTracker() {
   const [search, setSearch] = useState("");
   const [detailJob, setDetailJob] = useState(null);
   const [importMsg, setImportMsg] = useState("");
+  const [resumeNotes, setResumeNotes] = useState("");
+  const [resumeUploadMsg, setResumeUploadMsg] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -192,6 +194,28 @@ export default function JobTracker() {
     await supabase.from("jobs").update({ status }).eq("id", id);
     setJobs(prev => prev.map(j => j.id === id ? { ...j, status } : j));
   };
+
+  const handleResumeUpload = async (e, job) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  setResumeUploadMsg("Uploading...");
+  const filePath = `${session.user.id}/${job.id}_${file.name}`;
+  const { error: uploadError } = await supabase.storage.from("resumes").upload(filePath, file, { upsert: true });
+  if (uploadError) { setResumeUploadMsg("❌ Upload failed: " + uploadError.message); return; }
+  const { data: { publicUrl } } = supabase.storage.from("resumes").getPublicUrl(filePath);
+  await supabase.from("jobs").update({ resume_url: publicUrl, resume_name: file.name, resume_notes: resumeNotes }).eq("id", job.id);
+  setResumeUploadMsg("✅ Resume uploaded!");
+  setResumeNotes("");
+  fetchJobs();
+  setDetailJob(prev => ({ ...prev, resume_url: publicUrl, resume_name: file.name, resume_notes: resumeNotes }));
+  setTimeout(() => setResumeUploadMsg(""), 3000);
+};
+
+const removeResume = async (id) => {
+  await supabase.from("jobs").update({ resume_url: null, resume_name: null, resume_notes: null }).eq("id", id);
+  setDetailJob(prev => ({ ...prev, resume_url: null, resume_name: null, resume_notes: null }));
+  fetchJobs();
+};
 
   const stats = STATUSES.reduce((acc, s) => { acc[s] = jobs.filter(j => j.status === s).length; return acc; }, {});
   const activeCount = jobs.filter(j => !["Rejected", "Withdrawn", "Position Closed"].includes(j.status)).length;
@@ -356,10 +380,41 @@ export default function JobTracker() {
               </div>
             ) : null)}
           </div>
-          <div style={{ padding: "16px 24px", borderTop: "1px solid #e5e7eb", display: "flex", gap: 8 }}>
-            <button onClick={() => { openEdit(detailJob); setDetailJob(null); }} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#374151", fontWeight: 600, cursor: "pointer" }}>Edit</button>
-            <button onClick={() => deleteJob(detailJob.id)} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#fee2e2", color: "#ef4444", fontWeight: 600, cursor: "pointer" }}>Delete</button>
-          </div>
+          <div style={{ padding: "16px 24px", borderTop: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}` }}>
+            {/* Resume Section */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Resume</div>
+                {detailJob.resume_url ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: darkMode ? "#111827" : "#f9fafb", borderRadius: 8, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}` }}>
+                    <span style={{ fontSize: 20 }}>📄</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: darkMode ? "#d1d5db" : "#111" }}>{detailJob.resume_name}</div>
+                      {detailJob.resume_notes && <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>{detailJob.resume_notes}</div>}
+                    </div>
+                    <a href={detailJob.resume_url} target="_blank" rel="noopener noreferrer" style={{ padding: "4px 10px", borderRadius: 6, background: "#eef2ff", color: "#6366f1", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>View</a>
+                    <button onClick={() => removeResume(detailJob.id)} style={{ padding: "4px 10px", borderRadius: 6, background: "#fee2e2", color: "#ef4444", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer" }}>Remove</button>
+                  </div>
+                ) : (
+                  <div>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: darkMode ? "#111827" : "#f9fafb", borderRadius: 8, border: `2px dashed ${darkMode ? "#374151" : "#e5e7eb"}`, cursor: "pointer" }}>
+                      <span style={{ fontSize: 20 }}>📎</span>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: darkMode ? "#d1d5db" : "#374151" }}>Attach Resume</div>
+                        <div style={{ fontSize: 11, color: "#9ca3af" }}>PDF files only</div>
+                      </div>
+                      <input type="file" accept=".pdf" onChange={(e) => handleResumeUpload(e, detailJob)} style={{ display: "none" }} />
+                    </label>
+                    <input placeholder="Notes about this resume version (optional)" value={resumeNotes} onChange={e => setResumeNotes(e.target.value)}
+                      style={{ width: "100%", marginTop: 8, padding: "8px 10px", borderRadius: 7, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, fontSize: 12, outline: "none", background: darkMode ? "#111827" : "#fff", color: darkMode ? "#d1d5db" : "#111", boxSizing: "border-box" }} />
+                  </div>
+                )}
+                {resumeUploadMsg && <div style={{ fontSize: 12, color: resumeUploadMsg.startsWith("✅") ? "#10b981" : "#ef4444", marginTop: 6 }}>{resumeUploadMsg}</div>}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => { openEdit(detailJob); setDetailJob(null); }} style={{ flex: 1, padding: "10px", borderRadius: 8, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, background: darkMode ? "#1f2937" : "#fff", color: darkMode ? "#d1d5db" : "#374151", fontWeight: 600, cursor: "pointer" }}>Edit</button>
+                <button onClick={() => deleteJob(detailJob.id)} style={{ flex: 1, padding: "10px", borderRadius: 8, border: "none", background: "#fee2e2", color: "#ef4444", fontWeight: 600, cursor: "pointer" }}>Delete</button>
+              </div>
+            </div>
         </div>
       )}
 
