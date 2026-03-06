@@ -261,7 +261,7 @@ export default function JobTracker() {
               const cols = filtered.filter(j => j.status === status);
               const c = getColor(status);
               return (
-                <div key={status} style={{ background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb", overflow: "hidden" }}>
+                <div key={status} style={{ background: darkMode ? "#1f2937" : "#fff", borderRadius: 12, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, overflow: "hidden" }}>
                   <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ width: 8, height: 8, borderRadius: "50%", background: c.dot, display: "inline-block" }} />
                     <span style={{ fontWeight: 600, fontSize: 13, color: "#374151" }}>{status}</span>
@@ -270,7 +270,7 @@ export default function JobTracker() {
                   <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, minHeight: 60 }}>
                     {cols.length === 0 && <div style={{ color: "#d1d5db", fontSize: 12, textAlign: "center", padding: "12px 0" }}>No applications</div>}
                     {cols.map(job => (
-                      <div key={job.id} onClick={() => setDetailJob(job)} style={{ background: "#fafafa", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 12px", cursor: "pointer" }}
+                      <div key={job.id} onClick={() => setDetailJob(job)} style={{ background: darkMode ? "#111827" : "#fafafa", border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, borderRadius: 8, padding: "10px 12px", cursor: "pointer" }}
                         onMouseEnter={e => e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)"}
                         onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
                         <div style={{ fontWeight: 600, fontSize: 13, color: "#111" }}>{job.company}</div>
