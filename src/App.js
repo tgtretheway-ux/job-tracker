@@ -305,9 +305,9 @@ export default function JobTracker() {
                   const c = getColor(job.status);
                   return (
                     <tr key={job.id} style={{ borderBottom: `1px solid ${darkMode ? "#374151" : "#f3f4f6"}`, background: i % 2 === 0 ? (darkMode ? "#1f2937" : "#fff") : (darkMode ? "#111827" : "#fafafa") }}>
-                      <td style={{ padding: "12px 16px", fontWeight: 600, fontSize: 13, color: "#111", cursor: "pointer" }} onClick={() => setDetailJob(job)}>{job.company}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 13, color: "#374151" }}>{job.role}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 13, color: "#6b7280" }}>{job.location || "—"}</td>
+                      <td style={{ padding: "12px 16px", fontWeight: 600, fontSize: 13, color: darkMode ? "#d1d5db" : "#111", cursor: "pointer" }} onClick={() => setDetailJob(job)}>{job.company}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 13, color: darkMode ? "#d1d5db" : "#374151" }}>{job.role}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 13, color: darkMode ? "#d1d5db" : "#6b7280" }}>{job.location || "—"}</td>
                       <td style={{ padding: "12px 16px", fontSize: 13, color: "#10b981", fontWeight: 500 }}>{job.salary || "—"}</td>
                       <td style={{ padding: "12px 16px" }}>
                         <select value={job.status} onChange={e => updateStatus(job.id, e.target.value)}
@@ -315,7 +315,7 @@ export default function JobTracker() {
                           {STATUSES.map(s => <option key={s}>{s}</option>)}
                         </select>
                       </td>
-                      <td style={{ padding: "12px 16px", fontSize: 13, color: "#9ca3af" }}>{job.applied_date || "—"}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 13, color: darkMode ? "#d1d5db" : "#9ca3af" }}>{job.applied_date || "—"}</td>
                       <td style={{ padding: "12px 16px" }}>
                         <div style={{ display: "flex", gap: 6 }}>
                           <button onClick={() => openEdit(job)} style={{ padding: "4px 10px", borderRadius: 5, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontSize: 12, cursor: "pointer" }}>Edit</button>
