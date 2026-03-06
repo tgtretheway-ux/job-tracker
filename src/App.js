@@ -280,7 +280,7 @@ const removeResume = async (id) => {
         {loading && <div style={{ textAlign: "center", padding: 40, color: "#9ca3af" }}>Loading jobs...</div>}
 
         {!loading && view === "board" && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
             {STATUSES.map(status => {
               const cols = filtered.filter(j => j.status === status);
               const c = getColor(status);
