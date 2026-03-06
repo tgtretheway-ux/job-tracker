@@ -273,8 +273,8 @@ export default function JobTracker() {
                       <div key={job.id} onClick={() => setDetailJob(job)} style={{ background: darkMode ? "#111827" : "#fafafa", border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, borderRadius: 8, padding: "10px 12px", cursor: "pointer" }}
                         onMouseEnter={e => e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)"}
                         onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
-                        <div style={{ fontWeight: 600, fontSize: 13, color: "#111" }}>{job.company}</div>
-                        <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{job.role}</div>
+                        <div style={{ fontWeight: 600, fontSize: 13, color: darkMode ? "#d1d5db" : "#111" }}>{job.company}</div>
+                        <div style={{ fontSize: 12, color: darkMode ? "#9ca3af" : "#6b7280", marginTop: 2 }}>{job.role}</div>
                         {job.location && <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>📍 {job.location}</div>}
                         {job.applied_date && <div style={{ fontSize: 11, color: "#9ca3af" }}>📅 {job.applied_date}</div>}
                         {job.notes && <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4, fontStyle: "italic" }}>{job.notes.substring(0, 60)}{job.notes.length > 60 ? "…" : ""}</div>}
