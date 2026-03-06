@@ -128,9 +128,14 @@ export default function JobTracker() {
     supabase.auth.onAuthStateChange((_event, session) => setSession(session));
   }, []);
 
-  useEffect(() => { 
-  if (session) { fetchJobs(); fetchProfile(); } 
-  else { setJobs([]); setLoading(false); } 
+  const fetchProfile = async () => {
+  const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+  if (data) { setProfile(data); setAccountForm(f => ({ ...f, full_name: data.full_name || "" })); }
+};
+
+useEffect(() => {
+  if (session) { fetchJobs(); fetchProfile(); }
+  else { setJobs([]); setLoading(false); }
 }, [session]);
 
   const fetchJobs = async () => {
