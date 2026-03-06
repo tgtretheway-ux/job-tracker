@@ -118,13 +118,20 @@ export default function JobTracker() {
   const [collapsedColumns, setCollapsedColumns] = useState(() => {
   try { return JSON.parse(localStorage.getItem("collapsedColumns")) || {}; } catch { return {}; }
   });
+  const [showAccount, setShowAccount] = useState(false);
+  const [profile, setProfile] = useState({ full_name: "" });
+  const [accountForm, setAccountForm] = useState({ full_name: "", email: "", newPassword: "" });
+  const [accountMsg, setAccountMsg] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
     supabase.auth.onAuthStateChange((_event, session) => setSession(session));
   }, []);
 
-  useEffect(() => { if (session) fetchJobs(); else { setJobs([]); setLoading(false); } }, [session]);
+  useEffect(() => { 
+  if (session) { fetchJobs(); fetchProfile(); } 
+  else { setJobs([]); setLoading(false); } 
+}, [session]);
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -226,6 +233,34 @@ const toggleColumn = (status) => {
     localStorage.setItem("collapsedColumns", JSON.stringify(updated));
     return updated;
   });
+  const fetchProfile = async () => {
+  const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+  if (data) { setProfile(data); setAccountForm(f => ({ ...f, full_name: data.full_name || "" })); }
+};
+
+const saveProfile = async () => {
+  setAccountMsg("");
+  const { error } = await supabase.from("profiles").upsert({ id: session.user.id, full_name: accountForm.full_name });
+  if (error) { setAccountMsg("❌ " + error.message); return; }
+  if (accountForm.email && accountForm.email !== session.user.email) {
+    const { error: emailError } = await supabase.auth.updateUser({ email: accountForm.email });
+    if (emailError) { setAccountMsg("❌ " + emailError.message); return; }
+  }
+  if (accountForm.newPassword) {
+    const { error: passError } = await supabase.auth.updateUser({ password: accountForm.newPassword });
+    if (passError) { setAccountMsg("❌ " + passError.message); return; }
+  }
+  setProfile(p => ({ ...p, full_name: accountForm.full_name }));
+  setAccountMsg("✅ Profile updated!");
+  setTimeout(() => setAccountMsg(""), 3000);
+};
+
+const deleteAccount = async () => {
+  if (!window.confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+  await supabase.from("jobs").delete().eq("user_id", session.user.id);
+  await supabase.from("profiles").delete().eq("id", session.user.id);
+  await supabase.auth.signOut();
+};
 };
 
   const stats = STATUSES.reduce((acc, s) => { acc[s] = jobs.filter(j => j.status === s).length; return acc; }, {});
@@ -245,7 +280,9 @@ const toggleColumn = (status) => {
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {importMsg && <span style={{ fontSize: 13, color: importMsg.startsWith("✅") ? "#10b981" : "#ef4444" }}>{importMsg}</span>}
-            <span style={{ fontSize: 13, color: "#9ca3af" }}>{session.user.email}</span>
+            <button onClick={() => setShowAccount(true)} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>
+              👤 {profile.full_name || session.user.email}
+            </button>
             <label style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontWeight: 500, cursor: "pointer", fontSize: 13 }}>
               📂 Import Excel
               <input type="file" accept=".xlsx,.xls" onChange={handleImport} style={{ display: "none" }} />
@@ -431,6 +468,44 @@ const toggleColumn = (status) => {
             </div>
         </div>
       )}
+
+      {showAccount && (
+  <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 360, background: darkMode ? "#1f2937" : "#fff", boxShadow: "-4px 0 24px rgba(0,0,0,0.1)", zIndex: 50, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+    <div style={{ padding: "20px 24px", borderBottom: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <span style={{ fontWeight: 700, fontSize: 18, color: darkMode ? "#f9fafb" : "#111" }}>Account</span>
+      <button onClick={() => setShowAccount(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#9ca3af" }}>×</button>
+    </div>
+    <div style={{ padding: "20px 24px", flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ padding: "16px", background: darkMode ? "#111827" : "#f9fafb", borderRadius: 12, textAlign: "center" }}>
+        <div style={{ width: 56, height: 56, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", fontSize: 24 }}>
+          {profile.full_name ? profile.full_name[0].toUpperCase() : "👤"}
+        </div>
+        <div style={{ fontWeight: 700, fontSize: 16, color: darkMode ? "#f9fafb" : "#111" }}>{profile.full_name || "No name set"}</div>
+        <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 2 }}>{session.user.email}</div>
+      </div>
+
+      {[
+        { key: "full_name", label: "Full Name", type: "text", placeholder: "Your full name" },
+        { key: "email", label: "New Email", type: "email", placeholder: session.user.email },
+        { key: "newPassword", label: "New Password", type: "password", placeholder: "Leave blank to keep current" },
+      ].map(field => (
+        <div key={field.key}>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: darkMode ? "#d1d5db" : "#374151", marginBottom: 5 }}>{field.label}</label>
+          <input type={field.type} value={accountForm[field.key]} onChange={e => setAccountForm(f => ({ ...f, [field.key]: e.target.value }))}
+            placeholder={field.placeholder}
+            style={{ width: "100%", padding: "8px 10px", borderRadius: 7, border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, fontSize: 13, outline: "none", background: darkMode ? "#111827" : "#fff", color: darkMode ? "#d1d5db" : "#111", boxSizing: "border-box" }} />
+        </div>
+      ))}
+
+      {accountMsg && <div style={{ padding: "10px 12px", borderRadius: 8, background: accountMsg.startsWith("✅") ? "#dcfce7" : "#fee2e2", color: accountMsg.startsWith("✅") ? "#15803d" : "#dc2626", fontSize: 13 }}>{accountMsg}</div>}
+    </div>
+
+    <div style={{ padding: "16px 24px", borderTop: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`, display: "flex", flexDirection: "column", gap: 8 }}>
+      <button onClick={saveProfile} style={{ padding: "10px", borderRadius: 8, border: "none", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff", fontWeight: 600, cursor: "pointer" }}>Save Changes</button>
+      <button onClick={deleteAccount} style={{ padding: "10px", borderRadius: 8, border: "none", background: "#fee2e2", color: "#ef4444", fontWeight: 600, cursor: "pointer" }}>Delete Account</button>
+    </div>
+  </div>
+)}
 
       {showModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
